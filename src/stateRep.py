@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from sklearn.manifold import TSNE
 
 
 import tensorflow as tf
@@ -9,12 +10,11 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from src.helpers import Helpers
+from src.dataPrep import IMG_Clustering
 
-class CNN(Helpers):
+class CNN(IMG_Clustering):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
-        self.k = len(os.listdir(os.path.join(self.cnn_ds_path,'train')))
         self.IMG_H=212
         self.IMG_W=212
         self.chan=1
@@ -214,9 +214,7 @@ class CNN_Testing(CNN):
 class SNN_Asistance(CNN):
     def __init__(self, *args, **kwargs):
         super(SNN_Asistance, self).__init__(*args, **kwargs)
-        self.cnn = CNN()
-        self.cnn.createCNN(summary=False)
-        self.cnn.loadCNN(None)
+
 
     def preProcessSNNDS(self):
         '''
