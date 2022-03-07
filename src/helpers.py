@@ -12,6 +12,7 @@ class Helpers():
         self.cnn_results_path = '/home/lizano/Documents/SAC/results/cnn'
         self.cnn_ds_path = '/home/lizano/Documents/SAC/data/raw/cnn'
         self.cnn_weights_path = '/home/lizano/Documents/SAC/models/cnn/CNN.h5'
+        self.cnn_preprocess_data_path = '/home/lizano/Documents/SAC/data/preprocessed/cnn'
 
         self.snn_results_path = '/home/lizano/Documents/SAC/results/snn'
         self.snn_ds_path = '/home/lizano/Documents/SAC/data/raw/snn'

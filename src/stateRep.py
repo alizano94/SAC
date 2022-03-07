@@ -68,8 +68,8 @@ class CNN(IMG_Clustering):
         A function that trains a CNN given the model
         and the PATH of the data set.
         '''
-        train_dir = os.path.join(self.cnn_ds_path,'train')
-        test_dir = os.path.join(self.cnn_ds_path,'test')
+        train_dir = os.path.join(self.cnn_preprocess_data_path,'train')
+        test_dir = os.path.join(self.cnn_preprocess_data_path,'test')
         train_crystal_dir = os.path.join(train_dir,'0')
         train_fluid_dir = os.path.join(train_dir,'1')
         train_defective_dir = os.path.join(train_dir,'2')
