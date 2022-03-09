@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.manifold import TSNE
+from umap import UMAP
 
 from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.applications.inception_v3 import preprocess_input
@@ -72,6 +73,32 @@ class IMG_Clustering(Helpers):
             columns.append(header)
         tSNE = TSNE(n_components=n)
         features = tSNE.fit_transform(raw_features)
+        features = pd.DataFrame(features,columns=columns)
+        data = pd.concat([image_names,features],axis=1,join='inner')
+        print(data.head())
+        data.to_csv(os.path.join(self.cnn_ds_path,out_name))
+
+    def umap(self,n):
+        '''
+        Performs tSNE reduction on the raw features for the images.
+        args:
+            -n: number of componets to reduce to
+        return: None
+        '''
+
+        data = self.feature_extractor()
+        out_name = 'UMAP-'+str(n)+'components-features.csv'
+
+        raw_features = data.drop(columns=['Image Name'])
+        image_names = data.pop('Image Name')
+
+        raw_features.to_numpy()
+        columns = []
+        for i in range(n):
+            header = 'UMAP '+str(i)
+            columns.append(header)
+        umap_3d = UMAP(n_components=n)
+        features = umap_3d.fit_transform(raw_features)
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
         print(data.head())

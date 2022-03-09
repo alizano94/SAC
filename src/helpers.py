@@ -192,6 +192,9 @@ class Helpers():
         fig = plt.figure(figsize=(12, 12))
         ax = fig.add_subplot(projection='3d')
         ax.scatter(x,y,z)
+        ax.set_xlabel(method+' 0')
+        ax.set_ylabel(method+' 1')
+        ax.set_zlabel(method+' 2')
         plt.show()
 
 
