@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from random import seed, randint
+import matplotlib.pyplot as plt
 
 
 from tensorflow.keras.preprocessing import image
@@ -175,3 +176,23 @@ class Helpers():
         #print(out)
         out = out[::-1]
         return out
+
+    def plot3Dscatter(self,method = 'tSNE'):
+        '''
+        Method that plots a 3D scatter plot from dataframe.
+        args:
+            -data: DataFrame containing the points
+        returns: None
+        '''
+        data = pd.read_csv(os.path.join(self.cnn_ds_path,method+'-3components-features.csv'))
+        x = data[method+' 0'].tolist()
+        y = data[method+' 1'].tolist()
+        z = data[method+' 2'].tolist()
+
+        fig = plt.figure(figsize=(12, 12))
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(x,y,z)
+        plt.show()
+
+
+        

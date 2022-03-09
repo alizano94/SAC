@@ -68,7 +68,7 @@ class IMG_Clustering(Helpers):
         raw_features.to_numpy()
         columns = []
         for i in range(n):
-            header = 't-SNE '+str(i)
+            header = 'tSNE '+str(i)
             columns.append(header)
         tSNE = TSNE(n_components=n)
         features = tSNE.fit_transform(raw_features)
