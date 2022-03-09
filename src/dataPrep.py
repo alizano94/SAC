@@ -21,7 +21,8 @@ class IMG_Clustering(Helpers):
         Method that takes a dump of images and extracts their features
         using the InceptionV3 model.
         args:None
-        returns:None
+        returns:
+            -data: DataFrame containing the raw features.
         '''
         direc = os.path.join(self.cnn_ds_path,'dump')
         model = InceptionV3(weights='imagenet', include_top=False)
@@ -48,7 +49,7 @@ class IMG_Clustering(Helpers):
         data = pd.concat([img_name,raw_features],axis=1,join='inner')
         print(data.head())
 
-        data.to_csv(os.path.join(self.cnn_ds_path,'raw_features.csv'))
+        return data
 
     def tSNE(self,n):
         '''
@@ -57,12 +58,12 @@ class IMG_Clustering(Helpers):
             -n: number of componets to reduce to
         return: None
         '''
+
+        data = self.feature_extractor()
         out_name = 'tSNE-'+str(n)+'components-features.csv'
 
-        raw_features = pd.read_csv(os.path.join(self.cnn_ds_path,'raw_features.csv'))
-        image_names = pd.read_csv(os.path.join(self.cnn_ds_path,'raw_features.csv'))
-        raw_features = raw_features.drop(columns=['Image Name','Unnamed: 0'])
-        image_names = image_names.pop('Image Name')
+        raw_features = data.drop(columns=['Image Name'])
+        image_names = data.pop('Image Name')
 
         raw_features.to_numpy()
         columns = []
