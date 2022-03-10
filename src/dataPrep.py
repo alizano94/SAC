@@ -120,7 +120,8 @@ class IMG_Clustering(Helpers):
         features = data.drop(columns=['Image Name','Unnamed: 0'])
         image_names = data.pop('Image Name')
 
-        cluster = hdbscan.HDBSCAN()
+        cluster = hdbscan.HDBSCAN(min_cluster_size=50,
+                                min_samples=10)
         cluster.fit(features.to_numpy())
         data['labels'] = cluster.labels_
         data['Image Names'] = image_names.to_numpy()
@@ -154,19 +155,22 @@ class IMG_Clustering(Helpers):
         returns: None
         '''
         data_path = os.path.join(self.cnn_ds_path,'clusters')
+        dump_path = os.path.join(self.cnn_ds_path,'dump')
         data = pd.read_csv(os.path.join(self.cnn_ds_path,file)).drop(columns=['Unnamed: 0','Unnamed: 0.1'])
         os.system('rm -rf '+str(os.path.join(data_path,'*')))
         print(data.head())
 
         # Made folder to seperate images
         paths = []
-        for i in range(int(max(data['labels']))):
+        indexes = [-1]
+        indexes += list(range(int(max(data['labels']))))
+        for i in indexes:
             name = os.path.join(data_path,str(i))
             paths += [name]
             os.mkdir(name)
             for j in range(len(data)):
                 if data['labels'][j]==i:
-                    shutil.copy(os.path.join(data_path, data['Image Name'][j]), paths[i])
+                    shutil.copy(os.path.join(dump_path, data['Image Names'][j]), paths[i])
 
 
 
