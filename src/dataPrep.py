@@ -1,9 +1,13 @@
 import os
+from re import X
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.manifold import TSNE
-from umap import UMAP
+#from umap import UMAP
+import hdbscan
+import matplotlib.pyplot as plt
+import shutil
 
 from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.applications.inception_v3 import preprocess_input
@@ -103,4 +107,66 @@ class IMG_Clustering(Helpers):
         data = pd.concat([image_names,features],axis=1,join='inner')
         print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,out_name))
+
+    def cluster_hdbscan(self,method='UMAP',n=3):
+        '''
+        Method that takes data points and cluster them using hdbscan. 
+        args:
+        returns:
+        '''
+        features = method+'-'+str(n)+'components-features.csv'
+        data = pd.read_csv(os.path.join(self.cnn_ds_path,features))
+        
+        features = data.drop(columns=['Image Name','Unnamed: 0'])
+        image_names = data.pop('Image Name')
+
+        cluster = hdbscan.HDBSCAN()
+        cluster.fit(features.to_numpy())
+        data['labels'] = cluster.labels_
+        data['Image Names'] = image_names.to_numpy()
+
+        print(data.head())
+        data.to_csv(os.path.join(self.cnn_ds_path,method+'-'+str(n)+'D-clusters.csv'))
+
+        fig = plt.figure(figsize=(12, 12))
+        ax = fig.add_subplot(projection='3d')
+
+        # Creating color map
+        my_cmap = plt.get_cmap()
+
+        x = data[method+' 0'].to_numpy()
+        y = data[method+' 1'].to_numpy()
+        z = data[method+' 2'].to_numpy()
+        labels = data['labels'].to_numpy()
+
+        sctt = ax.scatter(x,y,z,
+                    alpha= 0.8,
+                    c = labels,
+                    cmap=my_cmap,
+                    marker='^')
+        fig.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
+        plt.show()
+
+    def createCNN_DS(self,file):
+        '''
+        Method that creates full data set for cnn training.
+        args: None
+        returns: None
+        '''
+        data_path = os.path.join(self.cnn_ds_path,'clusters')
+        data = pd.read_csv(os.path.join(self.cnn_ds_path,file)).drop(columns=['Unnamed: 0','Unnamed: 0.1'])
+        os.system('rm -rf '+str(os.path.join(data_path,'*')))
+        print(data.head())
+
+        # Made folder to seperate images
+        paths = []
+        for i in range(int(max(data['labels']))):
+            name = os.path.join(data_path,str(i))
+            paths += [name]
+            os.mkdir(name)
+            for j in range(len(data)):
+                if data['labels'][j]==i:
+                    shutil.copy(os.path.join(data_path, data['Image Name'][j]), paths[i])
+
+
 
