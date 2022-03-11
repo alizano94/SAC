@@ -16,6 +16,7 @@ class CNN(IMG_Clustering):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
         self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
+        self.save_path = os.path.join(self.cnn_weights_path,'CNN-'+str(self.k)+'states.h5')
         self.IMG_H=212
         self.IMG_W=212
         self.chan=1
@@ -118,7 +119,8 @@ class CNN(IMG_Clustering):
                             monitor='val_loss',
                             min_delta=0.01,
                             patience=7)])
-        self.cnn_model.save_weights(self.cnn_weights_path)
+        
+        self.cnn_model.save_weights(self.save_path)
         
         if plot:
             #Plot Accuracy, change this to matplotlib
@@ -143,7 +145,7 @@ class CNN(IMG_Clustering):
 			-path: path from which to load weights
 		'''
         if path == None:
-            path = self.cnn_weights_path
+            path = self.save_path
         #Load model wieghts
         self.cnn_model.load_weights(path)
         print("Loaded model from disk")

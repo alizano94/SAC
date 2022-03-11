@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.manifold import TSNE
-from umap import UMAP
+#from umap import UMAP
 import hdbscan
 import matplotlib.pyplot as plt
 import shutil
