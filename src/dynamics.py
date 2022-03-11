@@ -33,12 +33,12 @@ class SNN(SNN_Asistance):
         self.w = w
         self.a = a
 
-        weight_file = 'SNN-W'+str(self.w)+'-M'+str(self.m)+'.h5'
-        ds_file = 'Balanced-W'+str(self.w)+'-M'+str(self.m)+'.csv'
+        weight_file = 'SNN-W'+str(self.w)+'-M'+str(self.m)+'-K'+str(self.k)+'.h5'
+        ds_file = 'Balanced-W'+str(self.w)+'-M'+str(self.m)+'-K'+str(self.k)+'.csv'
         self.snn_preprocess_data_path = os.path.join(self.snn_preprocess_data_path,ds_file)
         self.snn_weights_path = os.path.join(self.snn_weights_path, weight_file)
 
-    def createSNNDS(self):
+    def createSNNDS(self,balanced=True):
         '''
         Function that creates the csv files that 
         serve as DS for the CNN
@@ -76,7 +76,8 @@ class SNN(SNN_Asistance):
                                         pass
 
         data.reset_index(inplace=True)						
-        data = self.balanceData(data,method='expand')
+        if balanced:
+            data = self.balanceData(data,method='expand')
         #data.drop(columns=['level_0'],inplace=True)
         print('Saving DS of size: '+str(len(data)))
         data.to_csv(self.snn_preprocess_data_path,index=False)

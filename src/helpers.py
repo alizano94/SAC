@@ -22,6 +22,8 @@ class Helpers():
 
         self.contorl_policies = '/home/lizano/Documents/SAC/models/control'
 
+        self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
+
     def preProcessImg(self,img_path,IMG_H=212,IMG_W=212):
         '''
         A function that preprocess an image to fit 
@@ -67,7 +69,7 @@ class Helpers():
                 for m in range(memory+1):
                     name = 'S'+str(-memory+m)
                     i = int(index+m*window/sampling_ts)
-                    row[name] = data.at[i,'S_param']
+                    row[name] = data.at[i,'S_cnn']
                 #print(row)
                 out_df = out_df.append(row,ignore_index=True)
         
@@ -88,7 +90,7 @@ class Helpers():
         Transforms array with out state into one hot encoded vector
         '''
         array = np.array(df['S0'],dtype=dtype)
-        onehotencoded_array = np.zeros((len(array),3),dtype=int)
+        onehotencoded_array = np.zeros((len(array),self.k),dtype=int)
         for i in range(len(array)):
             index = int(array[i])
             onehotencoded_array[i][index] = 1
@@ -135,7 +137,9 @@ class Helpers():
         '''
         create histogram from labels data
         '''
-        hist = [0,0,0]
+        hist = []
+        for i in range(self.k):
+            hist.append(0)
 
         for _, rows in data.iterrows():
             hist[int(rows['S0'])] += 1

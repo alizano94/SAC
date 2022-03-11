@@ -15,7 +15,6 @@ from src.dataPrep import IMG_Clustering
 class CNN(IMG_Clustering):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
-        self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
         self.save_path = os.path.join(self.cnn_weights_path,'CNN-'+str(self.k)+'states.h5')
         self.IMG_H=212
         self.IMG_W=212
@@ -181,7 +180,7 @@ class CNN_Testing(CNN):
             -missclassified data: csv containing the missclassified images.  
         '''
         if path == None:
-            path = self.cnn_ds_path
+            path = self.cnn_preprocess_data_path
 
         results_path = './results/cnn'
         Conf_Mat = np.zeros([self.k,self.k])
@@ -252,7 +251,7 @@ class SNN_Asistance(CNN):
                                     states = pd.DataFrame(columns = ['S_cnn', 'S_param'])
                                     for i in range(0,len(data.index)):
                                         file_name = t_path+'/plots/'+v_dir+'-'+t_dir+'-'+str(i)+'step'+step_dir+'.png'
-                                        s_cnn, _ = self.cnn.runCNN(file_name)
+                                        s_cnn, _ = self.runCNN(file_name)
                                         c6 = data.iloc[i]['C6_avg']
                                         psi6 = data.iloc[i]['psi6']
                                         if c6 <= 4.0:
