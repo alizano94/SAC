@@ -15,6 +15,7 @@ from src.dataPrep import IMG_Clustering
 class CNN(IMG_Clustering):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
+        self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
         self.IMG_H=212
         self.IMG_W=212
         self.chan=1

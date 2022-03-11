@@ -1,10 +1,9 @@
 import os
-from re import X
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.manifold import TSNE
-#from umap import UMAP
+from umap import UMAP
 import hdbscan
 import matplotlib.pyplot as plt
 import shutil
@@ -17,9 +16,8 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from src.helpers import Helpers
 
 class IMG_Clustering(Helpers):
-    def __init__(self,k, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
-        self.k = k
 
     def feature_extractor(self):
         '''
@@ -120,8 +118,9 @@ class IMG_Clustering(Helpers):
         features = data.drop(columns=['Image Name','Unnamed: 0'])
         image_names = data.pop('Image Name')
 
-        cluster = hdbscan.HDBSCAN(min_cluster_size=50,
-                                min_samples=10)
+        cluster = hdbscan.HDBSCAN(min_cluster_size=40,
+                                min_samples=5,
+                                cluster_selection_epsilon=0.1)
         cluster.fit(features.to_numpy())
         data['labels'] = cluster.labels_
         data['Image Names'] = image_names.to_numpy()
@@ -163,14 +162,13 @@ class IMG_Clustering(Helpers):
         # Made folder to seperate images
         paths = []
         indexes = [-1]
-        indexes += list(range(int(max(data['labels']))))
+        indexes += list(range(int(max(data['labels']))+2))
         for i in indexes:
             name = os.path.join(data_path,str(i))
-            paths += [name]
             os.mkdir(name)
             for j in range(len(data)):
                 if data['labels'][j]==i:
-                    shutil.copy(os.path.join(dump_path, data['Image Names'][j]), paths[i])
+                    shutil.copy(os.path.join(dump_path, data['Image Names'][j]), name)
 
 
 
