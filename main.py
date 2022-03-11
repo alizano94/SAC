@@ -5,4 +5,7 @@ from src.control import RL
 initial_image = '/home/lizano/Documents/SAC/data/initialstates/Fluid_test.png'
 
 control = RL(w=100,m=1,a=4)
-control.create
+control.preProcessSNNDS()
+control.createSNNDS()
+control.createSNN(summary=True)
+control.trainSNN()
