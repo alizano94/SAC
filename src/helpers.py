@@ -9,8 +9,8 @@ from tensorflow.keras.preprocessing import image
 
 class Helpers():
     def __init__(self):
-        self.IMG_H=212
-        self.IMG_W=212
+        self.IMG_H=424
+        self.IMG_W=424
         self.chan=1
 
         self.cnn_results_path = '/home/lizano/Documents/SAC/results/cnn'
@@ -27,7 +27,7 @@ class Helpers():
 
         self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
 
-    def preProcessImg(self,img_path,IMG_H=212,IMG_W=212):
+    def preProcessImg(self,img_path):
         '''
         A function that preprocess an image to fit 
         the CNN input.
@@ -40,7 +40,7 @@ class Helpers():
                 (dum,img_H,img_W,Chanell)
         '''
         #Load image as GS with st size
-        img = image.load_img(img_path,color_mode='grayscale',target_size=(IMG_H, IMG_W))
+        img = image.load_img(img_path,color_mode='grayscale',target_size=(self.IMG_H, self.IMG_W))
         #save image to array (H,W,C)
         img_array = image.img_to_array(img)
         

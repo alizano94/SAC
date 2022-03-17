@@ -16,10 +16,7 @@ class CNN(IMG_Clustering):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
         self.save_path = os.path.join(self.cnn_weights_path,'CNN-'+str(self.k)+'states.h5')
-        self.IMG_H=212
-        self.IMG_W=212
-        self.chan=1
-    
+        
     def createCNN(self,summary=False):
         '''
         function that creates and compile the CNN
