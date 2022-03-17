@@ -21,34 +21,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from src.helpers import Helpers
 
-class AutoEncoder(Model,Helpers):
-    def __init__(self,latent_dim,IMG_H=212,IMG_W=212, chan=1,*args,**kwargs):
-        super(AutoEncoder,self).__init__(*args,**kwargs)
-        self.latent_dim = latent_dim
-        self.IMG_H = IMG_H
-        self.IMG_W = IMG_W
-        self.chan = chan
-
-        self.encoder = Sequential([
-            layers.Input(shape=(self.IMG_H, self.IMG_W, self.chan)),
-            layers.Conv2D(16, (3, 3), activation='relu', padding='same', strides=2),
-            layers.Conv2D(8, (3, 3), activation='relu', padding='same', strides=2),
-            layers.Flatten(),
-            layers.Dense(self.latent_dim, activation='relu')])
-
-        self.decoder = Sequential([
-            layers.Dense(self.IMG_H*self.IMG_W*self.chan, activation = 'relu', input_shape=(self.latent_dim,)),
-            layers.Reshape((self.IMG_H, self.IMG_W, self.chan)),
-            layers.Conv2DTranspose(8, kernel_size=3, strides=2, activation='relu', padding='same'),
-            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='relu', padding='same'),
-            layers.Conv2D(1, kernel_size=(3, 3), activation='sigmoid', padding='same')])
-
-    def call(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
-
-
 
 class IMG_Clustering(Helpers):
     def __init__(self, *args, **kwargs):
@@ -91,7 +63,24 @@ class IMG_Clustering(Helpers):
         return data
 
     def createAE(self,latent_dim=1000,summary=False):
-        self.autoencoder = AutoEncoder(latent_dim)
+        '''
+        Creates autoencoder with specified latent space.
+        args:
+            -latent_dim: size of the latent space
+            -summary: False by default, set to True
+                        to get sumary of the model.
+        returns: None
+        '''
+        self.latent_dim = latent_dim
+
+        inputs = tf.keras.Input(shape=(self.IMG_H,self.IMG_W,self.chan), name='Image object input')
+        self.encoder = layers.Flatten()(inputs)
+        self.encoder = layers.Dense(self.latent_dim, activation='relu')(self.encoder)
+        
+        self.decoder = layers.Dense(self.IMG_H*self.IMG_W, activation='sigmoid')(self.encoder)
+        self.decoder = layers.Reshape((self.IMG_H, self.IMG_W))(self.decoder)
+        
+        self.autoencoder = Model(inputs=inputs,outputs=self.decoder)
         self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
 
         if summary:
@@ -120,10 +109,21 @@ class IMG_Clustering(Helpers):
         
         self.autoencoder.fit(train_data_gen,
                             epochs=epochs,
-                            batch_size=batch,
                             shuffle=True)
 
         self.autoencoder.save_weights(self.AE_save_path)
+
+    def loadAE(self,path):
+        '''
+        Functions that loads weight for the model
+        args:
+			-path: path from which to load weights
+		'''
+        if path == None:
+            path = self.AE_save_path
+        #Load model wieghts
+        self.autoencoder.load_weights(path)
+        print("Loaded model from disk")
 
         
         
@@ -279,6 +279,3 @@ class IMG_Clustering(Helpers):
             for j in range(len(data)):
                 if data['labels'][j]==i:
                     shutil.copy(os.path.join(dump_path, data['Image Names'][j]), name)
-
-
-
