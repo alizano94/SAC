@@ -9,6 +9,9 @@ from tensorflow.keras.preprocessing import image
 
 class Helpers():
     def __init__(self):
+        self.IMG_H=212
+        self.IMG_W=212
+        self.chan=1
 
         self.cnn_results_path = '/home/lizano/Documents/SAC/results/cnn'
         self.cnn_ds_path = '/home/lizano/Documents/SAC/data/raw/cnn'

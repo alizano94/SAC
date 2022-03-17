@@ -3,23 +3,59 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn.manifold import TSNE
-#from umap import UMAP
+from umap import UMAP
 import hdbscan
 import matplotlib.pyplot as plt
 import shutil
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
 
 from tensorflow.keras.applications.inception_v3 import InceptionV3
 from tensorflow.keras.applications.inception_v3 import preprocess_input
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras import layers, losses
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 
 from src.helpers import Helpers
+
+class AutoEncoder(Model,Helpers):
+    def __init__(self,latent_dim,IMG_H=212,IMG_W=212, chan=1,*args,**kwargs):
+        super(AutoEncoder,self).__init__(*args,**kwargs)
+        self.latent_dim = latent_dim
+        self.IMG_H = IMG_H
+        self.IMG_W = IMG_W
+        self.chan = chan
+
+        self.encoder = Sequential([
+            layers.Input(shape=(self.IMG_H, self.IMG_W, self.chan)),
+            layers.Conv2D(16, (3, 3), activation='relu', padding='same', strides=2),
+            layers.Conv2D(8, (3, 3), activation='relu', padding='same', strides=2),
+            layers.Flatten(),
+            layers.Dense(self.latent_dim, activation='relu')])
+
+        self.decoder = Sequential([
+            layers.Dense(self.IMG_H*self.IMG_W*self.chan, activation = 'relu', input_shape=(self.latent_dim,)),
+            layers.Reshape((self.IMG_H, self.IMG_W, self.chan)),
+            layers.Conv2DTranspose(8, kernel_size=3, strides=2, activation='relu', padding='same'),
+            layers.Conv2DTranspose(16, kernel_size=3, strides=2, activation='relu', padding='same'),
+            layers.Conv2D(1, kernel_size=(3, 3), activation='sigmoid', padding='same')])
+
+    def call(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
+
+
 
 class IMG_Clustering(Helpers):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
+        self.AE_save_path = os.path.join(self.cnn_weights_path,'AE.h5')
 
-    def feature_extractor(self):
+    def raw_featInception(self):
         '''
         Method that takes a dump of images and extracts their features
         using the InceptionV3 model.
@@ -27,6 +63,80 @@ class IMG_Clustering(Helpers):
         returns:
             -data: DataFrame containing the raw features.
         '''
+        direc = os.path.join(self.cnn_ds_path,'dump')
+        model = InceptionV3(weights='imagenet', include_top=False)
+        raw_features = []
+        img_name = []
+        img_path = os.listdir(direc)
+        for i in tqdm(img_path):
+            fname=direc+'/'+i
+            img=image.load_img(fname,target_size=(224,224))
+            x = img_to_array(img)
+            x=np.expand_dims(x,axis=0)
+            x=preprocess_input(x)
+            feat=model.predict(x)
+            feat=feat.flatten()
+            raw_features.append(feat)
+            img_name.append(i)
+        columns_names = ['Image Name']
+        columns_feat = []
+        for i in range(len(raw_features[0])):
+            header = 'raw '+str(i)
+            columns_feat.append(header)
+        img_name,raw_features = np.row_stack(img_name),np.row_stack(raw_features)
+        img_name,raw_features = pd.DataFrame(img_name,columns=columns_names), pd.DataFrame(raw_features,columns=columns_feat)
+        data = pd.concat([img_name,raw_features],axis=1,join='inner')
+        print(data.head())
+
+        return data
+
+    def createAE(self,latent_dim=1000,summary=False):
+        self.autoencoder = AutoEncoder(latent_dim)
+        self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
+
+        if summary:
+            self.autoencoder.summary()
+            tf.keras.utils.plot_model(
+				model = self.autoencoder,
+				rankdir="TB",
+				dpi=72,
+				show_shapes=True
+				)
+
+    def trainAE(self,batch=32,epochs=8,plot=False): 
+        '''
+        A function that trains a CNN given the model
+        and the PATH of the data set.
+        '''
+        dump_dir = os.path.join(self.cnn_ds_path,'dump')
+        #Process the Data
+        image_gen = ImageDataGenerator(rescale=1./255)
+        train_data_gen = image_gen.flow_from_directory(
+                                    dump_dir,
+                                    color_mode='grayscale',
+                                    shuffle=True,
+                                    target_size=(self.IMG_H, self.IMG_W),
+                                    class_mode='input')
+        
+        self.autoencoder.fit(train_data_gen,
+                            epochs=epochs,
+                            batch_size=batch,
+                            shuffle=True)
+
+        self.autoencoder.save_weights(self.AE_save_path)
+
+        
+        
+    def raw_featAutoEnc(self):
+        '''
+        Method that takes a dump of images and extracts their features
+        using the InceptionV3 model.
+        args:None
+        returns:
+            -data: DataFrame containing the raw features.
+        '''
+
+
         direc = os.path.join(self.cnn_ds_path,'dump')
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
