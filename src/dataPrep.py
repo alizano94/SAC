@@ -36,7 +36,7 @@ class IMG_Clustering(Helpers):
             -data: DataFrame containing the raw features.
         '''
         direc = os.path.join(self.cnn_ds_path,'dump')
-        direc = os.path.join(direc,'0')
+        direc = os.path.join(direc,'train')
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
         img_name = []
@@ -115,7 +115,7 @@ class IMG_Clustering(Helpers):
         print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,out_name))
 
-    def cluster_hdbscan(self,method='UMAP',n=3):
+    def cluster_hdbscan(self,method='UMAP',n=3,plot=False):
         '''
         Method that takes data points and cluster them using hdbscan. 
         args:
@@ -154,7 +154,8 @@ class IMG_Clustering(Helpers):
                     cmap=my_cmap,
                     marker='^')
         fig.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
-        plt.show()
+        if plot:
+            plt.show()
 
     def createCNN_DS(self,file):
         '''
@@ -164,6 +165,7 @@ class IMG_Clustering(Helpers):
         '''
         data_path = os.path.join(self.cnn_ds_path,'clusters')
         dump_path = os.path.join(self.cnn_ds_path,'dump')
+        dump_path = os.path.join(dump_path,'train')
         data = pd.read_csv(os.path.join(self.cnn_ds_path,file)).drop(columns=['Unnamed: 0','Unnamed: 0.1'])
         os.system('rm -rf '+str(os.path.join(data_path,'*')))
         print(data.head())
@@ -241,4 +243,3 @@ class IMG_Clustering(Helpers):
         #Load model wieghts
         self.autoencoder.load_weights(path)
         print("Loaded model from disk")
-
