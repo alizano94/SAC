@@ -36,108 +36,7 @@ class IMG_Clustering(Helpers):
             -data: DataFrame containing the raw features.
         '''
         direc = os.path.join(self.cnn_ds_path,'dump')
-        model = InceptionV3(weights='imagenet', include_top=False)
-        raw_features = []
-        img_name = []
-        img_path = os.listdir(direc)
-        for i in tqdm(img_path):
-            fname=direc+'/'+i
-            img=image.load_img(fname,target_size=(224,224))
-            x = img_to_array(img)
-            x=np.expand_dims(x,axis=0)
-            x=preprocess_input(x)
-            feat=model.predict(x)
-            feat=feat.flatten()
-            raw_features.append(feat)
-            img_name.append(i)
-        columns_names = ['Image Name']
-        columns_feat = []
-        for i in range(len(raw_features[0])):
-            header = 'raw '+str(i)
-            columns_feat.append(header)
-        img_name,raw_features = np.row_stack(img_name),np.row_stack(raw_features)
-        img_name,raw_features = pd.DataFrame(img_name,columns=columns_names), pd.DataFrame(raw_features,columns=columns_feat)
-        data = pd.concat([img_name,raw_features],axis=1,join='inner')
-        print(data.head())
-
-        return data
-
-    def createAE(self,latent_dim=1000,summary=False):
-        '''
-        Creates autoencoder with specified latent space.
-        args:
-            -latent_dim: size of the latent space
-            -summary: False by default, set to True
-                        to get sumary of the model.
-        returns: None
-        '''
-        self.latent_dim = latent_dim
-
-        inputs = tf.keras.Input(shape=(self.IMG_H,self.IMG_W,self.chan), name='Image object input')
-        self.encoder = layers.Flatten()(inputs)
-        self.encoder = layers.Dense(self.latent_dim, activation='relu')(self.encoder)
-        
-        self.decoder = layers.Dense(self.IMG_H*self.IMG_W, activation='sigmoid')(self.encoder)
-        self.decoder = layers.Reshape((self.IMG_H, self.IMG_W))(self.decoder)
-        
-        self.autoencoder = Model(inputs=inputs,outputs=self.decoder)
-        self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
-
-        if summary:
-            self.autoencoder.summary()
-            tf.keras.utils.plot_model(
-				model = self.autoencoder,
-				rankdir="TB",
-				dpi=72,
-				show_shapes=True
-				)
-
-    def trainAE(self,batch=32,epochs=8,plot=False): 
-        '''
-        A function that trains a CNN given the model
-        and the PATH of the data set.
-        '''
-        dump_dir = os.path.join(self.cnn_ds_path,'dump')
-        #Process the Data
-        image_gen = ImageDataGenerator(rescale=1./255)
-        train_data_gen = image_gen.flow_from_directory(
-                                    dump_dir,
-                                    color_mode='grayscale',
-                                    shuffle=True,
-                                    target_size=(self.IMG_H, self.IMG_W),
-                                    class_mode='input')
-        
-        self.autoencoder.fit(train_data_gen,
-                            epochs=epochs,
-                            shuffle=True)
-
-        self.autoencoder.save_weights(self.AE_save_path)
-
-    def loadAE(self,path):
-        '''
-        Functions that loads weight for the model
-        args:
-			-path: path from which to load weights
-		'''
-        if path == None:
-            path = self.AE_save_path
-        #Load model wieghts
-        self.autoencoder.load_weights(path)
-        print("Loaded model from disk")
-
-        
-        
-    def raw_featAutoEnc(self):
-        '''
-        Method that takes a dump of images and extracts their features
-        using the InceptionV3 model.
-        args:None
-        returns:
-            -data: DataFrame containing the raw features.
-        '''
-
-
-        direc = os.path.join(self.cnn_ds_path,'dump')
+        direc = os.path.join(direc,'0')
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
         img_name = []
@@ -172,7 +71,7 @@ class IMG_Clustering(Helpers):
         return: None
         '''
 
-        data = self.feature_extractor()
+        data = self.raw_featInception()
         out_name = 'tSNE-'+str(n)+'components-features.csv'
 
         raw_features = data.drop(columns=['Image Name'])
@@ -198,7 +97,7 @@ class IMG_Clustering(Helpers):
         return: None
         '''
 
-        data = self.feature_extractor()
+        data = self.raw_featInception()
         out_name = 'UMAP-'+str(n)+'components-features.csv'
 
         raw_features = data.drop(columns=['Image Name'])
@@ -279,3 +178,67 @@ class IMG_Clustering(Helpers):
             for j in range(len(data)):
                 if data['labels'][j]==i:
                     shutil.copy(os.path.join(dump_path, data['Image Names'][j]), name)
+
+    def createAE(self,latent_dim=1000,summary=False):
+        '''
+        Creates autoencoder with specified latent space.
+        args:
+            -latent_dim: size of the latent space
+            -summary: False by default, set to True
+                        to get sumary of the model.
+        returns: None
+        '''
+        self.latent_dim = latent_dim
+
+        inputs = tf.keras.Input(shape=(self.IMG_H,self.IMG_W,self.chan), name='Image object input')
+        self.encoder = layers.Flatten()(inputs)
+        self.encoder = layers.Dense(self.latent_dim, activation='relu')(self.encoder)
+        
+        self.decoder = layers.Dense(self.IMG_H*self.IMG_W, activation='sigmoid')(self.encoder)
+        self.decoder = layers.Reshape((self.IMG_H, self.IMG_W))(self.decoder)
+        
+        self.autoencoder = Model(inputs=inputs,outputs=self.decoder)
+        self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
+
+        if summary:
+            self.autoencoder.summary()
+            tf.keras.utils.plot_model(
+				model = self.autoencoder,
+				rankdir="TB",
+				dpi=72,
+				show_shapes=True
+				)
+
+    def trainAE(self,batch=32,epochs=8,plot=False): 
+        '''
+        A function that trains a CNN given the model
+        and the PATH of the data set.
+        '''
+        dump_dir = os.path.join(self.cnn_ds_path,'dump')
+        #Process the Data
+        image_gen = ImageDataGenerator(rescale=1./255)
+        train_data_gen = image_gen.flow_from_directory(
+                                    dump_dir,
+                                    color_mode='grayscale',
+                                    shuffle=True,
+                                    target_size=(self.IMG_H, self.IMG_W),
+                                    class_mode='input')
+        
+        self.autoencoder.fit(train_data_gen,
+                            epochs=epochs,
+                            shuffle=True)
+
+        self.autoencoder.save_weights(self.AE_save_path)
+
+    def loadAE(self,path):
+        '''
+        Functions that loads weight for the model
+        args:
+			-path: path from which to load weights
+		'''
+        if path == None:
+            path = self.AE_save_path
+        #Load model wieghts
+        self.autoencoder.load_weights(path)
+        print("Loaded model from disk")
+
