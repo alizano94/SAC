@@ -6,4 +6,4 @@ initial_image = '/home/lizano/Documents/SAC/data/initialstates/Crystal_test.png'
 
 control = RL(w=100,m=1,a=4)
 control.createAE()
-control.trainAE()
+control.trainAE(epochs=9)
