@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from tqdm import tqdm
 from sklearn.manifold import TSNE
 from umap import UMAP
@@ -21,11 +22,100 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 from src.helpers import Helpers
 
+class Autoencoder(Helpers):
+    def __init__(self,*args,**kwargs):
+        super(Autoencoder, self).__init__(*args, **kwargs)
+        self.AE_save_path = os.path.join(self.cnn_weights_path,'AE.h5')
 
-class IMG_Clustering(Helpers):
+    def createAE(self,latent_dim=1000,summary=False):
+        '''
+        Creates autoencoder with specified latent space.
+        args:
+            -latent_dim: size of the latent space
+            -summary: False by default, set to True
+                        to get sumary of the model.
+        returns: None
+        '''
+        self.latent_dim = latent_dim
+
+        inputs = tf.keras.Input(shape=(self.IMG_H,self.IMG_W,self.chan), name='Image object input')
+        self.encoder = layers.Flatten()(inputs)
+        self.encoder = layers.Dense(self.latent_dim, activation='relu')(self.encoder)
+        
+        self.decoder = layers.Dense(self.IMG_H*self.IMG_W, activation='sigmoid')(self.encoder)
+        self.decoder = layers.Reshape((self.IMG_H, self.IMG_W))(self.decoder)
+        
+        self.autoencoder = Model(inputs=inputs,outputs=self.decoder)
+        self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
+
+        if summary:
+            self.autoencoder.summary()
+            tf.keras.utils.plot_model(
+				model = self.autoencoder,
+				rankdir="TB",
+				dpi=72,
+				show_shapes=True
+				)
+
+    def trainAE(self,batch=32,epochs=8,plot=False): 
+        '''
+        A function that trains a CNN given the model
+        and the PATH of the data set.
+        '''
+        dump_dir = os.path.join(self.cnn_ds_path,'dump')
+        #Process the Data
+        image_gen = ImageDataGenerator(rescale=1./255)
+        train_data_gen = image_gen.flow_from_directory(
+                                    dump_dir,
+                                    color_mode='grayscale',
+                                    shuffle=True,
+                                    target_size=(self.IMG_H, self.IMG_W),
+                                    class_mode='input')
+        
+        history = self.autoencoder.fit(train_data_gen,
+                            batch_size=batch,
+                            epochs=epochs,
+                            shuffle=True,
+                            callbacks = [tf.keras.callbacks.EarlyStopping(
+                            monitor='val_loss',
+                            min_delta=0.01,
+                            patience=7)])
+        
+        if plot:
+            #Plot Accuracy, change this to matplotlib
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=history.epoch,
+                                y=history.history['val_loss'],
+                                mode='lines+markers',
+                                name='Training loss'))
+            fig.update_layout(title='Reconstruction Loss',
+                        xaxis=dict(title='Epoch'),
+                        yaxis=dict(title='Loss'))
+            fig.show()
+
+        self.autoencoder.save_weights(self.AE_save_path)
+
+    def loadAE(self,path):
+        '''
+        Functions that loads weight for the model
+        args:
+			-path: path from which to load weights
+		'''
+        if path == None:
+            path = self.AE_save_path
+        #Load model wieghts
+        self.autoencoder.load_weights(path)
+        print("Loaded model from disk")
+
+class Autoencoder_Test(Autoencoder):
+    def __init__(self,*args,**kwargs):
+        super(Autoencoder_Test,self).__init__(*args,**kwargs)
+        #Add Testing for autoencoder learning
+
+
+class IMG_Clustering(Autoencoder):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
-        self.AE_save_path = os.path.join(self.cnn_weights_path,'AE.h5')
 
     def raw_featInception(self):
         '''
@@ -157,6 +247,10 @@ class IMG_Clustering(Helpers):
         if plot:
             plt.show()
 
+class CNN_Asistance(IMG_Clustering):
+    def __init__(self,*args,**kwargs):
+        super(CNN_Asistance,self).__init__(*args,**kwargs)
+    
     def createCNN_DS(self,file):
         '''
         Method that creates full data set for cnn training.
@@ -181,65 +275,7 @@ class IMG_Clustering(Helpers):
                 if data['labels'][j]==i:
                     shutil.copy(os.path.join(dump_path, data['Image Names'][j]), name)
 
-    def createAE(self,latent_dim=1000,summary=False):
-        '''
-        Creates autoencoder with specified latent space.
-        args:
-            -latent_dim: size of the latent space
-            -summary: False by default, set to True
-                        to get sumary of the model.
-        returns: None
-        '''
-        self.latent_dim = latent_dim
-
-        inputs = tf.keras.Input(shape=(self.IMG_H,self.IMG_W,self.chan), name='Image object input')
-        self.encoder = layers.Flatten()(inputs)
-        self.encoder = layers.Dense(self.latent_dim, activation='relu')(self.encoder)
-        
-        self.decoder = layers.Dense(self.IMG_H*self.IMG_W, activation='sigmoid')(self.encoder)
-        self.decoder = layers.Reshape((self.IMG_H, self.IMG_W))(self.decoder)
-        
-        self.autoencoder = Model(inputs=inputs,outputs=self.decoder)
-        self.autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
-
-        if summary:
-            self.autoencoder.summary()
-            tf.keras.utils.plot_model(
-				model = self.autoencoder,
-				rankdir="TB",
-				dpi=72,
-				show_shapes=True
-				)
-
-    def trainAE(self,batch=32,epochs=8,plot=False): 
-        '''
-        A function that trains a CNN given the model
-        and the PATH of the data set.
-        '''
-        dump_dir = os.path.join(self.cnn_ds_path,'dump')
-        #Process the Data
-        image_gen = ImageDataGenerator(rescale=1./255)
-        train_data_gen = image_gen.flow_from_directory(
-                                    dump_dir,
-                                    color_mode='grayscale',
-                                    shuffle=True,
-                                    target_size=(self.IMG_H, self.IMG_W),
-                                    class_mode='input')
-        
-        self.autoencoder.fit(train_data_gen,
-                            epochs=epochs,
-                            shuffle=True)
-
-        self.autoencoder.save_weights(self.AE_save_path)
-
-    def loadAE(self,path):
-        '''
-        Functions that loads weight for the model
-        args:
-			-path: path from which to load weights
-		'''
-        if path == None:
-            path = self.AE_save_path
-        #Load model wieghts
-        self.autoencoder.load_weights(path)
-        print("Loaded model from disk")
+class Clustering_Test(IMG_Clustering):
+    def __init__(self,*args,**kwargs):
+        super(Clustering_Test,self).__init__(*args,**kwargs)
+        #Add Testing for CLsutering

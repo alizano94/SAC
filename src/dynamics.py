@@ -231,9 +231,6 @@ class SNN(SNN_Asistance):
 class SNN_Testing(SNN):
     def __init__(self,*args,**kwargs):
         super(SNN_Testing,self).__init__(*args,**kwargs)
-        self.snn = SNN(a=self.a,w=self.w,m=self.m)
-        self.snn.createSNN()
-        self.snn.loadSNN(None)
 
     def getTranitionTensorDS(self):
         '''
@@ -294,14 +291,14 @@ class SNN_Testing(SNN):
                 for i in range(self.m):
                     name = 'S'+str(i-self.m)
                     states.insert(-1,int(rows[name]))
-                out = self.snn.runSNN(V,states)
+                out = self.runSNN(V,states)
                 trans_matrix[int(rows['V'])-1,int(rows['S-1']),int(out)] += 1
         else:
             for V in range(4):
                 for initial_state in range(3):
                     states = [initial_state]
                     for i in range(1000):		
-                        out = self.snn.runSNN(V+1,states)
+                        out = self.runSNN(V+1,states)
                         trans_matrix[V,initial_state,int(out)] += 1
 
         np.save(tensor_save_path,trans_matrix)

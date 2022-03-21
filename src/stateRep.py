@@ -10,9 +10,9 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from src.dataPrep import IMG_Clustering
+from src.dataPrep import CNN_Asistance
 
-class CNN(IMG_Clustering):
+class CNN(CNN_Asistance):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
         self.save_path = os.path.join(self.cnn_weights_path,'CNN-'+str(self.k)+'states.h5')
