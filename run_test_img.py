@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from src.control import RL
 
 plot = True
-initial_image = '/home/lizano/Documents/SAC/data/initialstates/Crystal_test.png'
+initial_image = '/home/lizano/Documents/SAC/data/initialstates/Defective1.png'
 
 
 control = RL(w=100,m=1,a=4)
