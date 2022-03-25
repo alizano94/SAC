@@ -142,7 +142,7 @@ class IMG_Clustering(Autoencoder):
             feat=feat.flatten()
             raw_features.append(feat)
             img_name.append(i)
-        columns_names = ['Image Name']
+        columns_names = ['Image Names']
         columns_feat = []
         for i in range(len(raw_features[0])):
             header = 'raw '+str(i)
@@ -165,8 +165,8 @@ class IMG_Clustering(Autoencoder):
         data = self.raw_featInception()
         out_name = 'tSNE-'+str(n)+'components-features.csv'
 
-        raw_features = data.drop(columns=['Image Name'])
-        image_names = data.pop('Image Name')
+        raw_features = data.drop(columns=['Image Names'])
+        image_names = data.pop('Image Names')
 
         raw_features.to_numpy()
         columns = []
@@ -191,8 +191,8 @@ class IMG_Clustering(Autoencoder):
         data = self.raw_featInception()
         out_name = 'UMAP-'+str(n)+'components-features.csv'
 
-        raw_features = data.drop(columns=['Image Name'])
-        image_names = data.pop('Image Name')
+        raw_features = data.drop(columns=['Image Names'])
+        image_names = data.pop('Image Names')
 
         raw_features.to_numpy()
         columns = []
@@ -206,28 +206,35 @@ class IMG_Clustering(Autoencoder):
         print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,out_name))
 
-    def cluster_hdbscan(self,method='UMAP',n=3,plot=False):
+    def cluster_hdbscan(self,method='UMAP',n=3,plot=False,metric='euclidean',file_name=None,data=1,df_flag=None):
         '''
         Method that takes data points and cluster them using hdbscan. 
         args:
         returns:
         '''
-        features = method+'-'+str(n)+'components-features.csv'
-        data = pd.read_csv(os.path.join(self.cnn_ds_path,features))
+        if file_name!=None:   
+            data = pd.read_csv(os.path.join(self.cnn_ds_path,file_name),index_col=0)
+            out_csv = 'out_clusters.csv'
+        elif df_flag!=None:
+            out_csv = 'out_clusters.csv'
+        else:
+            out_csv = method+'-'+str(n)+'D-clusters.csv'
+            file_name = method+'-'+str(n)+'components-features.csv'
+            data = pd.read_csv(os.path.join(self.cnn_ds_path,file_name),index_col=0)
         
-        features = data.drop(columns=['Image Name','Unnamed: 0'])
-        image_names = data.pop('Image Name')
+        features = data.drop(columns=['Image Names'])
+        image_names = data.pop('Image Names')
 
         cluster = hdbscan.HDBSCAN(min_cluster_size=40,
                                 min_samples=5,
                                 cluster_selection_epsilon=0.1,
-                                )
+                                metric=metric)
         cluster.fit(features.to_numpy())
         data['labels'] = cluster.labels_
         data['Image Names'] = image_names.to_numpy()
 
         print(data.head())
-        data.to_csv(os.path.join(self.cnn_ds_path,method+'-'+str(n)+'D-clusters.csv'))
+        data.to_csv(os.path.join(self.cnn_ds_path,out_csv))
 
         fig = plt.figure(figsize=(12, 12))
         ax = fig.add_subplot(projection='3d')
@@ -247,29 +254,32 @@ class IMG_Clustering(Autoencoder):
                     marker='^')
         fig.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
         if plot:
-            plt.show()
+            fig.savefig(os.path.join(self.cnn_results_path,
+                                    method+'-'+str(n)+'components-clusters.png'))
 
 class CNN_Asistance(IMG_Clustering):
     def __init__(self,*args,**kwargs):
         super(CNN_Asistance,self).__init__(*args,**kwargs)
     
-    def createCNN_DS(self,file):
+    def createCNN_DS(self,file,data_path=None,dump_path=None,delete=True):
         '''
         Method that creates full data set for cnn training.
         args: None
         returns: None
         '''
-        data_path = os.path.join(self.cnn_ds_path,'clusters')
-        dump_path = os.path.join(self.cnn_ds_path,'dump')
-        dump_path = os.path.join(dump_path,'train')
-        data = pd.read_csv(os.path.join(self.cnn_ds_path,file)).drop(columns=['Unnamed: 0','Unnamed: 0.1'])
-        os.system('rm -rf '+str(os.path.join(data_path,'*')))
-        print(data.head())
+        if data_path==None:
+            data_path = os.path.join(self.cnn_ds_path,'clusters')
+        if dump_path==None:
+            dump_path = os.path.join(self.cnn_ds_path,'dump')
+            dump_path = os.path.join(dump_path,'train')
+        data = pd.read_csv(os.path.join(self.cnn_ds_path,file),index_col=0)
+        if delete:
+            os.system('rm -rf '+str(os.path.join(data_path,'*')))
 
         # Made folder to seperate images
         paths = []
         indexes = [-1]
-        indexes += list(range(int(max(data['labels']))+2))
+        indexes += list(range(int(max(data['labels']))+1))
         for i in indexes:
             name = os.path.join(data_path,str(i))
             os.mkdir(name)
