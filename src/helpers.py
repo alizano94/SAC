@@ -48,7 +48,7 @@ class Helpers():
         img_batch = np.expand_dims(img_array, axis=0)
         return img_batch
 
-    def windowResampling(slef,data,sampling_ts,window,memory):
+    def windowResampling(self,data,sampling_ts,window,memory):
         '''
         Receives data in a dataframe and returns data frame 
         with resampled data using slinding window method

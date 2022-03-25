@@ -1,4 +1,5 @@
 import os
+from turtle import distance
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -219,7 +220,8 @@ class IMG_Clustering(Autoencoder):
 
         cluster = hdbscan.HDBSCAN(min_cluster_size=40,
                                 min_samples=5,
-                                cluster_selection_epsilon=0.1)
+                                cluster_selection_epsilon=0.1,
+                                )
         cluster.fit(features.to_numpy())
         data['labels'] = cluster.labels_
         data['Image Names'] = image_names.to_numpy()
