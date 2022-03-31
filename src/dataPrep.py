@@ -118,7 +118,7 @@ class IMG_Clustering(Autoencoder):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
 
-    def raw_featInception(self):
+    def raw_featInception(self,out_name='raw_features.csv'):
         '''
         Method that takes a dump of images and extracts their features
         using the InceptionV3 model.
@@ -126,8 +126,8 @@ class IMG_Clustering(Autoencoder):
         returns:
             -data: DataFrame containing the raw features.
         '''
-        direc = os.path.join(self.cnn_ds_path,'dump')
-        direc = os.path.join(direc,'train')
+
+        direc = os.path.join(self.cnn_ds_path,'unclassified_raw_data','train')
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
         img_name = []
@@ -152,19 +152,22 @@ class IMG_Clustering(Autoencoder):
         data = pd.concat([img_name,raw_features],axis=1,join='inner')
         print(data.head())
 
-        return data
+        data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_name))
 
-    def tSNE(self,n):
+    def tSNE(self,n,load_file='raw_features.csv',out_file='tsne_features.csv'):
         '''
         Performs tSNE reduction on the raw features for the images.
         args:
             -n: number of componets to reduce to
         return: None
         '''
+        load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
+        if not os.path.exists(load_file):
+            print('File not found extracting features using Inception Model.')
+            self.raw_featInception()
+            load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data','raw_features.csv')
 
-        data = self.raw_featInception()
-        out_name = 'tSNE-'+str(n)+'components-features.csv'
-
+        data = pd.read_csv(load_file,index_col=0)
         raw_features = data.drop(columns=['Image Names'])
         image_names = data.pop('Image Names')
 
@@ -178,19 +181,23 @@ class IMG_Clustering(Autoencoder):
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
         print(data.head())
-        data.to_csv(os.path.join(self.cnn_ds_path,out_name))
+        data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
-    def umap(self,n):
+    def umap(self,n,load_file='raw_features.csv',out_file='umap_features.csv'):
         '''
         Performs tSNE reduction on the raw features for the images.
         args:
             -n: number of componets to reduce to
         return: None
         '''
+        
+        load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
+        if not os.path.exists(load_file):
+            print('File not found extracting features using Inception Model.')
+            self.raw_featInception()
+            load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data','raw_features.csv')
 
-        data = self.raw_featInception()
-        out_name = 'UMAP-'+str(n)+'components-features.csv'
-
+        data = pd.read_csv(load_file,index_col=0)
         raw_features = data.drop(columns=['Image Names'])
         image_names = data.pop('Image Names')
 
@@ -203,89 +210,72 @@ class IMG_Clustering(Autoencoder):
         features = umap_3d.fit_transform(raw_features)
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
-        print(data.head())
-        data.to_csv(os.path.join(self.cnn_ds_path,out_name))
+        #print(data.head())
+        data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
-    def cluster_hdbscan(self,method='UMAP',n=3,plot=False,metric='euclidean',file_name=None,data=1,df_flag=None):
+    def cluster_hdbscan(self,plot=False,mcs=40,ms=5,eps=0.1,
+                        metric='euclidean',
+                        load_file='umap_features.csv',
+                        out_file='hdbscan_clusters.csv'):
         '''
         Method that takes data points and cluster them using hdbscan. 
         args:
         returns:
         '''
-        if file_name!=None:   
-            data = pd.read_csv(os.path.join(self.cnn_ds_path,file_name),index_col=0)
-            out_csv = 'out_clusters.csv'
-        elif df_flag!=None:
-            out_csv = 'out_clusters.csv'
-        else:
-            out_csv = method+'-'+str(n)+'D-clusters.csv'
-            file_name = method+'-'+str(n)+'components-features.csv'
-            data = pd.read_csv(os.path.join(self.cnn_ds_path,file_name),index_col=0)
+        load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
+        if not os.path.exists(load_file):
+            print('File not found creating file using UMAP')
+            self.umap(n=3)
+            load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data','umap_features.csv')
+        data = pd.read_csv(load_file,index_col=0)
         
         features = data.drop(columns=['Image Names'])
         image_names = data.pop('Image Names')
 
-        cluster = hdbscan.HDBSCAN(min_cluster_size=40,
-                                min_samples=5,
-                                cluster_selection_epsilon=0.1,
+        cluster = hdbscan.HDBSCAN(min_cluster_size=mcs,
+                                min_samples=ms,
+                                cluster_selection_epsilon=eps,
                                 metric=metric)
         cluster.fit(features.to_numpy())
         data['labels'] = cluster.labels_
         data['Image Names'] = image_names.to_numpy()
 
-        print(data.head())
-        data.to_csv(os.path.join(self.cnn_ds_path,out_csv))
+        #print(data.head())
+        data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
-        fig = plt.figure(figsize=(12, 12))
-        ax = fig.add_subplot(projection='3d')
-
-        # Creating color map
-        my_cmap = plt.get_cmap()
-
-        x = data[method+' 0'].to_numpy()
-        y = data[method+' 1'].to_numpy()
-        z = data[method+' 2'].to_numpy()
-        labels = data['labels'].to_numpy()
-
-        sctt = ax.scatter(x,y,z,
-                    alpha= 0.8,
-                    c = labels,
-                    cmap=my_cmap,
-                    marker='^')
-        fig.colorbar(sctt, ax = ax, shrink = 0.5, aspect = 5)
-        if plot:
-            fig.savefig(os.path.join(self.cnn_results_path,
-                                    method+'-'+str(n)+'components-clusters.png'))
 
 class CNN_Asistance(IMG_Clustering):
     def __init__(self,*args,**kwargs):
         super(CNN_Asistance,self).__init__(*args,**kwargs)
     
-    def createCNN_DS(self,file,data_path=None,dump_path=None,delete=True):
+    def createCNN_DS(self,load_file='hdbscan_clusters.csv',delete=True):
         '''
         Method that creates full data set for cnn training.
         args: None
         returns: None
         '''
-        if data_path==None:
-            data_path = os.path.join(self.cnn_ds_path,'clusters')
-        if dump_path==None:
-            dump_path = os.path.join(self.cnn_ds_path,'dump')
-            dump_path = os.path.join(dump_path,'train')
-        data = pd.read_csv(os.path.join(self.cnn_ds_path,file),index_col=0)
+        load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
+        if not os.path.exists(load_file):
+            print('File not found creating file using HDBSCAN')
+            self.cluster_hdbscan()
+            load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data','hdbscan_clusters.csv')
+        data = pd.read_csv(load_file,index_col=0)
         if delete:
-            os.system('rm -rf '+str(os.path.join(data_path,'*')))
+            os.system('rm -rf '+str(os.path.join(self.cnn_ds_path,'clusters','*')))
 
         # Made folder to seperate images
         paths = []
         indexes = [-1]
         indexes += list(range(int(max(data['labels']))+1))
         for i in indexes:
-            name = os.path.join(data_path,str(i))
+            name = os.path.join(self.cnn_ds_path,'clusters',str(i))
             os.mkdir(name)
             for j in range(len(data)):
                 if data['labels'][j]==i:
-                    shutil.copy(os.path.join(dump_path, data['Image Names'][j]), name)
+                    shutil.copy(os.path.join(self.cnn_ds_path,'unclassified_raw_data',
+                                            'train',
+                                            data['Image Names'][j])
+                                ,name)
 
 class Clustering_Test(IMG_Clustering):
     def __init__(self,*args,**kwargs):
