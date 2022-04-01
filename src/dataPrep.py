@@ -241,6 +241,7 @@ class IMG_Clustering(Autoencoder):
         data['Image Names'] = image_names.to_numpy()
 
         #print(data.head())
+        print('Number of clusters found: ',max(data['labels'].unique()))
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
 
@@ -265,8 +266,7 @@ class CNN_Asistance(IMG_Clustering):
 
         # Made folder to seperate images
         paths = []
-        indexes = [-1]
-        indexes += list(range(int(max(data['labels']))+1))
+        indexes = data['labels'].unique()
         for i in indexes:
             name = os.path.join(self.cnn_ds_path,'clusters',str(i))
             os.mkdir(name)
