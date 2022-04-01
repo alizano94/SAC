@@ -1,0 +1,223 @@
+Sampling parameters:  [4.30000000e+01 7.00000000e+00 1.14374817e-04]
+Purity:  0.8620203809705568
+Inpurity:  1.160065379050656
+Sampling parameters:  [35.  5.  0.]
+Purity:  0.8821292385237646
+Inpurity:  1.133620739828884
+>0 f([35.  5.  0.]) = 1.13362
+Sampling parameters:  [18.          1.          0.11353453]
+Purity:  0.9203277494511872
+Inpurity:  1.0865694320271482
+>1 f([18.          1.          0.11353453]) = 1.08657
+Sampling parameters:  [8.         4.         0.02754387]
+Purity:  0.9651989024597537
+Inpurity:  1.0360558817996557
+>2 f([8.         4.         0.02754387]) = 1.03606
+Sampling parameters:  [26.         1.         0.0456653]
+Purity:  0.9007322659543479
+Inpurity:  1.1102078140172713
+Sampling parameters:  [1.90000000e+01 1.00000000e+00 1.03010534e-02]
+Purity:  0.9203277494511872
+Inpurity:  1.0865694320271482
+Sampling parameters:  [ 2.         14.          0.06062359]
+Purity:  0.9244085024956892
+Inpurity:  1.0817728280302823
+Sampling parameters:  [17.          7.          0.11762947]
+Purity:  0.9335601118323842
+Inpurity:  1.0711683022073513
+Sampling parameters:  [2.         8.         0.01640554]
+Purity:  0.9636342031555121
+Inpurity:  1.0377381756743427
+Sampling parameters:  [2. 6. 0.]
+Purity:  0.973158642887033
+Inpurity:  1.0275816870241605
+>8 f([2. 6. 0.]) = 1.02758
+Sampling parameters:  [2. 3. 0.]
+Purity:  0.9838245279308637
+Inpurity:  1.0164414197958205
+>9 f([2. 3. 0.]) = 1.01644
+Sampling parameters:  [2.         4.         0.16598022]
+Purity:  0.9504323033806641
+Inpurity:  1.0521527903071317
+Sampling parameters:  [ 9. 11.  0.]
+Purity:  0.9397469745799977
+Inpurity:  1.0641162217595128
+Sampling parameters:  [3.         1.         0.01909155]
+Purity:  0.9836224198545037
+Inpurity:  1.0166502712981256
+Sampling parameters:  [24.          5.          0.03748461]
+Purity:  0.9072447497504501
+Inpurity:  1.1022383984862558
+Sampling parameters:  [6. 1. 0.]
+Purity:  0.9742609101594112
+Inpurity:  1.0264190932553963
+Sampling parameters:  [2. 7. 0.]
+Purity:  0.9654869894184543
+Inpurity:  1.035746738132985
+Sampling parameters:  [6. 5. 0.]
+Purity:  0.9705852705581761
+Inpurity:  1.0303061774519902
+Sampling parameters:  [16.          1.          0.11081115]
+Purity:  0.9235146394731397
+Inpurity:  1.0828198679887682
+Sampling parameters:  [14.          9.          0.23764909]
+Purity:  0.9307049806935003
+Inpurity:  1.0744543338049675
+Sampling parameters:  [2. 3. 0.]
+Purity:  0.9838245279308637
+Inpurity:  1.0164414197958205
+Sampling parameters:  [2.         8.         0.10103755]
+Purity:  0.9466604729380258
+Inpurity:  1.0563449394865208
+Sampling parameters:  [3.         4.         0.07620112]
+Purity:  0.9823078261740037
+Inpurity:  1.0180108244631478
+Sampling parameters:  [5.        6.        0.0362743]
+Purity:  0.9665476953552546
+Inpurity:  1.0346100919856314
+Sampling parameters:  [5.         5.         0.08810198]
+Purity:  0.9597016877980882
+Inpurity:  1.0419904567370004
+Sampling parameters:  [9.         2.         0.30588773]
+Purity:  0.9430351098921644
+Inpurity:  1.0604059058992505
+Sampling parameters:  [2.00000000e+01 2.00000000e+00 1.23280773e-02]
+Purity:  0.9263562779797158
+Inpurity:  1.0794982705583789
+Sampling parameters:  [4.         6.         0.14468477]
+Purity:  0.950701437106484
+Inpurity:  1.0518549367544443
+Sampling parameters:  [2.         6.         0.13555897]
+Purity:  0.9522573994408147
+Inpurity:  1.0501362347903211
+Sampling parameters:  [2.         2.         0.12496054]
+Purity:  0.9592879297336662
+Inpurity:  1.0424398858824764
+Sampling parameters:  [20.          1.          0.10771706]
+Purity:  0.9203277494511872
+Inpurity:  1.0865694320271482
+Sampling parameters:  [2.         7.         0.11895733]
+Purity:  0.9493010378272511
+Inpurity:  1.053406622507006
+Sampling parameters:  [4. 4. 0.]
+Purity:  0.9771777025455123
+Inpurity:  1.0233553195033376
+Sampling parameters:  [2.         6.         0.32236395]
+Purity:  0.9460489300653611
+Inpurity:  1.0570277796634806
+Sampling parameters:  [2.         1.         0.19981752]
+Purity:  0.9216737542873441
+Inpurity:  1.08498261488765
+Sampling parameters:  [11.         10.          0.05575306]
+Purity:  0.9391470196728758
+Inpurity:  1.0647960106909784
+Sampling parameters:  [2.         1.         0.13125487]
+Purity:  0.9765710923314938
+Inpurity:  1.0239909903666833
+Sampling parameters:  [2.         3.         0.02208665]
+Purity:  0.9862435993174319
+Inpurity:  1.0139482787944973
+>36 f([2.         3.         0.02208665]) = 1.01395
+Sampling parameters:  [7.         5.         0.24327814]
+Purity:  0.946389897141007
+Inpurity:  1.056646951770033
+Sampling parameters:  [2.         2.         0.10897527]
+Purity:  0.9694019734632866
+Inpurity:  1.031563817048359
+Sampling parameters:  [10.  6.  0.]
+Purity:  0.9632774580375503
+Inpurity:  1.0381224969566538
+Sampling parameters:  [3.         6.         0.04533611]
+Purity:  0.972462895394029
+Inpurity:  1.0283168691951103
+Sampling parameters:  [ 9. 15.  0.]
+Purity:  0.9355369883502413
+Inpurity:  1.0689048241304013
+Sampling parameters:  [6.         2.         0.00844218]
+Purity:  0.9772252589175022
+Inpurity:  1.0233055182258857
+Sampling parameters:  [2.        1.        0.0225827]
+Purity:  0.9880097477629625
+Inpurity:  1.0121357630976675
+>43 f([2.        1.        0.0225827]) = 1.01214
+Sampling parameters:  [2. 1. 0.]
+Purity:  0.9869574737251849
+Inpurity:  1.0132148817168254
+Sampling parameters:  [13.          6.          0.04393609]
+Purity:  0.9324580423968362
+Inpurity:  1.0724343128936404
+Sampling parameters:  [2.         6.         0.16283137]
+Purity:  0.950701437106484
+Inpurity:  1.0518549367544443
+Sampling parameters:  [ 4. 14.  0.]
+Purity:  0.9244085024956892
+Inpurity:  1.0817728280302823
+Sampling parameters:  [ 2. 11.  0.]
+Purity:  0.9397469745799977
+Inpurity:  1.0641162217595128
+Sampling parameters:  [12.          1.          0.05393747]
+Purity:  0.9313552838066563
+Inpurity:  1.0737041141945074
+Sampling parameters:  [2.        2.        0.1993428]
+Purity:  0.9198602235557284
+Inpurity:  1.0871216891349977
+Sampling parameters:  [2.         2.         0.01527143]
+Purity:  0.9744552922664322
+Inpurity:  1.0262143455285206
+Sampling parameters:  [5. 7. 0.]
+Purity:  0.9644366545580523
+Inpurity:  1.0368747343580014
+Sampling parameters:  [11.          4.          0.06461092]
+Purity:  0.93906588057786
+Inpurity:  1.064888013378405
+Sampling parameters:  [10.          3.          0.13936638]
+Purity:  0.949075806399038
+Inpurity:  1.0536566133680907
+Sampling parameters:  [2. 1. 0.]
+Purity:  0.9869574737251849
+Inpurity:  1.0132148817168254
+Sampling parameters:  [12.         1.         0.0410771]
+Purity:  0.9313552838066563
+Inpurity:  1.0737041141945074
+Sampling parameters:  [2. 1. 0.]
+Purity:  0.9869574737251849
+Inpurity:  1.0132148817168254
+Sampling parameters:  [5.         2.         0.02780341]
+Purity:  0.9742225488168581
+Inpurity:  1.0264595099081286
+Sampling parameters:  [9. 4. 0.]
+Purity:  0.9649919227730794
+Inpurity:  1.0362781038895315
+Sampling parameters:  [5.         8.         0.01416752]
+Purity:  0.9636342031555121
+Inpurity:  1.0377381756743427
+Sampling parameters:  [19.          1.          0.24493686]
+Purity:  0.9203277494511872
+Inpurity:  1.0865694320271482
+Sampling parameters:  [2.         1.         0.04746272]
+Purity:  0.9890151812448346
+Inpurity:  1.011106825217121
+>62 f([2.         1.         0.04746272]) = 1.01111
+Sampling parameters:  [2.         3.         0.12226756]
+Purity:  0.9597064039608455
+Inpurity:  1.0419853362162188
+Sampling parameters:  [2. 1. 0.]
+Purity:  0.9869574737251849
+Inpurity:  1.0132148817168254
+Sampling parameters:  [2.         4.         0.02271122]
+Purity:  0.9844259458394065
+Inpurity:  1.01582044259034
+Sampling parameters:  [2.         1.         0.04727357]
+Purity:  0.9890151812448346
+Inpurity:  1.011106825217121
+Sampling parameters:  [2. 1. 0.]
+Purity:  0.9869574737251849
+Inpurity:  1.0132148817168254
+Sampling parameters:  [2.00000000e+01 1.00000000e+00 1.27748475e-02]
+Purity:  0.9203277494511872
+Inpurity:  1.0865694320271482
+Sampling parameters:  [2.         1.         0.03936917]
+Purity:  0.989287548424942
+Inpurity:  1.0108284508302094
+>69 f([2.         1.         0.03936917]) = 1.01083
+Sampling parameters:  [10. 12.  0.]
