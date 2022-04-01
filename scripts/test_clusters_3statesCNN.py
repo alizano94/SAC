@@ -1,43 +1,39 @@
 import os
 import numpy as np
-from src.control import RL
+import pandas as pd
 import matplotlib.pyplot as plt
 
-control = RL(w=100,m=1,a=4)
-control.createCNN()
-control.loadCNN(None)
 
-clusters_path = '/home/lizano/Documents/SAC/data/raw/cnn/clusters'
-save_path = '/home/lizano/Documents/SAC/results/clusters'
+data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data'
+cnn_data = pd.read_csv(os.path.join(data_path,'train_cnn_labels.csv'),
+                        index_col=0)
 
-os.system('rm -rf '+os.path.join(save_path,'*'))
-hist_max = []
+def get_purity():
+    '''
+    Function that evaluates metric for clusters
+    '''
+    cluster_data = pd.read_csv(os.path.join(data_path,'hdbscan_clusters.csv'))
+    purities = np.zeros((np.max(cluster_data.labels.unique())+1,3))
+    for i in range(len(cluster_data)):
+        row = cluster_data.loc[i,'labels']
+        column = 0
+        for j in range(len(cnn_data)):
+            if cluster_data.loc[i,'Image Names'] == cnn_data.loc[j,'Image Names']:
+                column = cnn_data.loc[j,'CNN Labels']
+        purities[row][column] += 1
 
-for cluster in os.listdir(clusters_path):
-    hist = [0,0,0]
-    cluster_path = os.path.join(clusters_path,cluster)
-    for image in os.listdir(cluster_path):
-        img = os.path.join(cluster_path,image)
-        state, _ = control.runCNN(img)
-        hist[state] += 1
-    hist /= np.sum(hist)
-    if cluster != '-1':
-        print('Local purity for cluster ',cluster,': ',np.max(hist))
-        hist_max.append(np.max(hist))
-    outfig = 'Cluster_'+cluster+'-hist.png'
-    outfig = os.path.join(save_path,outfig)
-    labels = ['S0','S1','S2']
-    plt.bar(np.arange(len(hist)),hist,color='black')
-    plt.xlabel('3-State Classification')
-    plt.title('Cluster '+cluster)
-    plt.ylabel('Frequency')
-    plt.xticks(np.arange(len(hist)),labels)
-    #plt.show()
-    figure = plt.gcf()
-    figure.set_size_inches(16,8)
-    plt.savefig(outfig,dpi=100)
-    plt.clf()
+    for i in range(len(purities)):
+        sum = np.sum(purities[i])
+        for j in range(len(purities[i])):
+            purities[i][j] /= sum
 
-print('Found ',len(hist_max),' clusters.')
-purity = np.mean(hist_max)
-print('Cluster putrity: ', purity)
+    maximums = []
+    for i in range(len(purities)):
+        maximums.append(np.max(purities[i]))
+    
+    purity = np.mean(maximums)
+    print('Purity: ',purity)
+    print('Inpurity: ',1/purity)
+    return 1/purity
+
+_ = get_purity()
