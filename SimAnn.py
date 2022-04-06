@@ -15,11 +15,10 @@ data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data'
 cnn_data = pd.read_csv(os.path.join(data_path,'train_cnn_labels.csv'),
                         index_col=0)
 
-def get_purity():
+def get_purity(cluster_data):
     '''
     Function that evaluates metric for clusters
     '''
-    cluster_data = pd.read_csv(os.path.join(data_path,'hdbscan_clusters.csv'))
     purities = np.zeros((np.max(cluster_data.labels.unique())+1,3))
     for i in range(len(cluster_data)):
         row = cluster_data.loc[i,'labels']
@@ -38,10 +37,9 @@ def get_purity():
     for i in range(len(purities)):
         maximums.append(np.max(purities[i]))
     
-    purity = np.mean(maximums)
-    print('Purity: ',purity)
-    print('Inpurity: ',1/purity)
-    return 1/purity
+    glob_purity = np.mean(maximums)
+    min_purity = np.min(maximums)
+    return 1/glob_purity, 1/min_purity
 
 def transform_values(x):
     '''
@@ -70,15 +68,32 @@ def objective(x,*args):
     '''
     function to optimize
     '''
-    print('Sampling parameters: ',x)
+    cluster_data = pd.read_csv(os.path.join(data_path,'hdbscan_clusters.csv'),index_col=0)
+    obj = 0
+    inpurity, min_inpurity, noise_size_factor = 0, 0, 0
+    noise = 0
+    size = 0
     control.cluster_hdbscan(mcs=int(x[0]),
                     ms=int(x[1]),
                     eps=float(x[2]))
-    
-    return get_purity()
+
+    inpurity, min_inpurity = get_purity(cluster_data)
+    noise = len(cluster_data.loc[cluster_data.labels == -1])
+    size = max(cluster_data.labels.unique())+1
+    noise_size_factor = ( noise + size )/len(cluster_data)
+    obj = min_inpurity + noise_size_factor
+
+    print('Gloabl Purity: ', 1/inpurity)
+    print('Minimun Local Purity: ', 1/min_inpurity)
+    print('Noise: ',noise)
+    print('Clusters: ',size)
+    print('Objective Evaluation: ',obj)
+
+    return obj
 
 # simulated annealing algorithm
 def simulated_annealing(objective, bounds, n_iterations, step_size, temp):
+    print('##############Begin Simulated Annealing Optimization#################')
     # generate an initial point
     best = bounds[:, 0] + rand(len(bounds)) * (bounds[:, 1] - bounds[:, 0])
     best = transform_values(best)
@@ -86,6 +101,7 @@ def simulated_annealing(objective, bounds, n_iterations, step_size, temp):
     best_eval = objective(best)
     # current working solution
     curr, curr_eval = best, best_eval
+    print('Initial guess: %s, evaluation: %.5f', (best,best_eval))
     # run the algorithm
     for i in range(n_iterations):
         # take a step
@@ -93,6 +109,7 @@ def simulated_annealing(objective, bounds, n_iterations, step_size, temp):
         # evaluate candidate point
         candidate = transform_values(candidate)
         candidate_eval = objective(candidate)
+        print('--Iteration: %d, Hyperparameters: %s' %(i,candidate))
         # check for new best solution
         if candidate_eval < best_eval:
             # store new best point
@@ -114,13 +131,13 @@ def simulated_annealing(objective, bounds, n_iterations, step_size, temp):
 # seed the pseudorandom number generator
 seed(1)
 # define range for input
-bounds = asarray([[2.0, 100.0],
+bounds = asarray([[10.0, 100.0],
                     [1.0,10.0],
                     [0.0,1.0]])
 # define the total iterations
 n_iterations = 1000
 # define the maximum step size
-step_size = asarray([10.0,5.0,0.1])
+step_size = asarray([10.0,1.0,0.1])
 # initial temperature
 temp = 0.1
 # perform the simulated annealing search

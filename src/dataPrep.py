@@ -241,7 +241,6 @@ class IMG_Clustering(Autoencoder):
         data['Image Names'] = image_names.to_numpy()
 
         #print(data.head())
-        print('Number of clusters found: ',max(data['labels'].unique()))
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
 
