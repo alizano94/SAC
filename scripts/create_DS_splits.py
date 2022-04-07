@@ -43,7 +43,7 @@ try:
 except:
     os.mkdir(validation_data_path)
 
-training_size = 4000
+training_size = 9176
 testing_size = int(0.25*training_size)
 validation_size = int(0.25*training_size)
 sampling_size = training_size+testing_size+validation_size
