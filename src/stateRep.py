@@ -164,7 +164,7 @@ class CNN(CNN_Asistance):
 class CNN_Testing(CNN):
     def __init__(self, *args, **kwargs):
         super(CNN_Testing, self).__init__(*args, **kwargs)
-
+    
     def testCNN(self,path):
         '''
         Function that test CNN performance by callculating the 
@@ -177,38 +177,18 @@ class CNN_Testing(CNN):
             -missclassified data: csv containing the missclassified images.  
         '''
         if path == None:
-            path = self.cnn_preprocess_data_path
+            path = os.path.join(self.cnn_preprocess_data_path,'validation')
 
-        results_path = './results/cnn'
         Conf_Mat = np.zeros([self.k,self.k])
-        data = pd.DataFrame()
+        error_log = pd.DataFrame(columns=['Image Name','Path','True Label','Predicted Label'])
+        for cluster in os.listdir(path):
+            for image in os.listdir(os.path.join(path,cluster)):
+                pred_label, _ = self.runCNN(os.path.join(path,cluster,image))
+                Conf_Mat[int(cluster),int(pred_label)] += 1
+        self.plot_heatmap(Conf_Mat)
         
-        #CHECK REFACTOR FOR THIS LOOPS
-        for dir_name in os.listdir(path):
-            new_path = os.path.join(path,dir_name)
-            if os.path.isdir(new_path):
-                for tag in os.listdir(new_path):
-                    real_state = int(tag)
-                    new_path = os.path.join(os.path.join(path,dir_name),tag)
-                    print(new_path)
-                    for filename in os.listdir(new_path):
-                        if filename.endswith(".png"):
-                            img = os.path.join(new_path,filename)
-                            s_cnn, _ = self.runCNN(img)
-                            Conf_Mat[int(real_state),int(s_cnn)] += 1
-                            if int(real_state) != int(s_cnn):
-                                entry = {}
-                                entry['Path'] = os.path.join(new_path,filename)
-                                entry['CNN'] = s_cnn
-                                entry['Real'] = real_state
-                                data = data.append(entry,ignore_index=True)
-        print(Conf_Mat)
-        np.save(os.path.join(results_path,'ConfMat.npy'),Conf_Mat)
-        print('Number of point in data set: ',Conf_Mat.sum())
-        data.to_csv(os.path.join(results_path,'CNNerror_log.csv'),index=False)
 
-        score = Conf_Mat.trace()/Conf_Mat.sum()
-        print(score)
+
 
 class SNN_Asistance(CNN):
     def __init__(self, *args, **kwargs):

@@ -4,6 +4,18 @@ import numpy as np
 from random import seed, randint
 import matplotlib.pyplot as plt
 
+SMALL_SIZE = 24
+MEDIUM_SIZE = 32
+BIGGER_SIZE = 64
+
+plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+
 
 from tensorflow.keras.preprocessing import image
 
@@ -203,6 +215,34 @@ class Helpers():
         ax.set_ylabel(method+' 1')
         ax.set_zlabel(method+' 2')
         plt.show()
+
+    def plot_heatmap(self,array,save_name='Confution_matrix.png'):
+        '''
+        Function that takes an array a creates a confution 
+        matrix heat map plot for it.
+        args:
+            -array: Array containing the confution matrix.
+        returns: None
+        '''
+        import seaborn as sns
+
+        ax = sns.heatmap(array, annot=True, cmap='flare')
+
+        ax.set_xlabel('\nPredicted Labels')
+        ax.set_ylabel('True Labels')
+
+        ## Ticket labels - List must be in alphabetical order
+        #labels = []
+        #for i in range(len(array[0])):
+        #    labels.append(str(i))
+        #ax.xaxis.set_ticklabels(labels)
+        #ax.yaxis.set_ticklabels(labels)
+
+        ## Display the visualization of the Confusion Matrix.
+        figure = plt.gcf()
+        figure.set_size_inches(64,36)
+        plt.savefig(os.path.join(self.cnn_results_path,save_name),dpi=100)
+        plt.clf()
 
 
         

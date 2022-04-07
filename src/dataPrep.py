@@ -264,7 +264,6 @@ class CNN_Asistance(IMG_Clustering):
             os.system('rm -rf '+str(os.path.join(self.cnn_ds_path,'clusters','*')))
 
         # Made folder to seperate images
-        paths = []
         indexes = data['labels'].unique()
         for i in indexes:
             name = os.path.join(self.cnn_ds_path,'clusters',str(i))
@@ -275,6 +274,47 @@ class CNN_Asistance(IMG_Clustering):
                                             'train',
                                             data['Image Names'][j])
                                 ,name)
+
+    def createCNN_spits(self,validation_split=0.2,testing_split=0.2):
+        '''
+        Function that creates the testing training and validation 
+        splits for the CNN further trining. 
+        args:
+            -validation_split: fraction of total data set to take as validation.
+            -testing_split: fraction of total data set to take as testing.
+        return:
+        '''
+        import math
+        
+        #backup the clusters directory to a tempoaray one
+        clusters_path = os.path.join(self.cnn_ds_path,'clusters')
+        work_path = os.path.join(self.cnn_ds_path,'temp')
+        os.system("rm -rf "+os.path.join(self.cnn_preprocess_data_path,"*"))        
+        destinations = ["train","test","validation"]
+        for i in range(len(destinations)):
+            destinations[i] = os.path.join(self.cnn_preprocess_data_path,destinations[i])
+            os.system("mkdir "+destinations[i])
+        os.system("cp -r "+clusters_path+" "+work_path)
+
+        size = 0
+        for cluster in os.listdir(work_path):
+            print(cluster)
+            if cluster != "-1":
+                path = os.path.join(work_path,cluster)
+                print(path)
+                number_files = len([name for name in os.listdir(path) if os.path.isfile(os.path.join(path, name))])
+                training_size = str(math.trunc(number_files/(1+validation_split+testing_split)))
+                os.system("mkdir "+os.path.join(destinations[0],cluster))
+                os.system("shuf -n"+training_size+" -e "+path+"/*.png | xargs -i mv {} "+os.path.join(destinations[0],cluster))
+                testing_size = str(math.trunc(testing_split*number_files))
+                os.system("mkdir "+os.path.join(destinations[1],cluster))
+                os.system("shuf -n"+testing_size+" -e "+path+"/*.png | xargs -i mv {} "+os.path.join(destinations[1],cluster))
+                validation_size = str(math.trunc(validation_split*number_files))
+                os.system("mkdir "+os.path.join(destinations[2],cluster))
+                os.system("shuf -n"+validation_size+" -e "+path+"/*.png | xargs -i mv {} "+os.path.join(destinations[2],cluster))
+                size += number_files
+        os.system("rm -rf "+work_path)
+                
 
 class Clustering_Test(IMG_Clustering):
     def __init__(self,*args,**kwargs):
