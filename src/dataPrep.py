@@ -1,8 +1,8 @@
 import os
-from turtle import distance
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from sklearn.decomposition import PCA
 from tqdm import tqdm
 from sklearn.manifold import TSNE
 from umap import UMAP
@@ -118,7 +118,7 @@ class IMG_Clustering(Autoencoder):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
 
-    def raw_featInception(self,out_name='raw_features.csv'):
+    def raw_featInception(self,path=None,out_name='raw_features.csv'):
         '''
         Method that takes a dump of images and extracts their features
         using the InceptionV3 model.
@@ -126,14 +126,14 @@ class IMG_Clustering(Autoencoder):
         returns:
             -data: DataFrame containing the raw features.
         '''
-
-        direc = os.path.join(self.cnn_ds_path,'unclassified_raw_data','train')
+        if not path:
+            path = os.path.join(self.cnn_ds_path,'unclassified_raw_data','train')
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
         img_name = []
-        img_path = os.listdir(direc)
+        img_path = os.listdir(path)
         for i in tqdm(img_path):
-            fname=direc+'/'+i
+            fname=path+'/'+i
             img=image.load_img(fname,target_size=(224,224))
             x = img_to_array(img)
             x=np.expand_dims(x,axis=0)
@@ -206,11 +206,10 @@ class IMG_Clustering(Autoencoder):
         for i in range(n):
             header = 'UMAP '+str(i)
             columns.append(header)
-        umap_3d = UMAP(n_components=n)
-        features = umap_3d.fit_transform(raw_features)
+        mapper = UMAP(n_components=n)
+        features = mapper.fit_transform(raw_features)
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
-        #print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
     def cluster_hdbscan(self,plot=False,mcs=40,ms=5,eps=0.1,
@@ -319,4 +318,52 @@ class CNN_Asistance(IMG_Clustering):
 class Clustering_Test(IMG_Clustering):
     def __init__(self,*args,**kwargs):
         super(Clustering_Test,self).__init__(*args,**kwargs)
-        #Add Testing for CLsutering
+        #Add Testing for Clsutering
+
+
+    def pca_reconstruction_error(self,n=2,n_samples=100,raw_feat_file='validation_raw_features.csv'):
+        '''
+        Function that takes projected features, calculates its mapping into
+        the latent space and then gets the inverse transformation of it. 
+        Finally calculates the reconstruction error.
+        args:
+        return:
+        '''
+        raw_feat_path = os.path.join(self.cnn_ds_path,'unclassified_raw_data',raw_feat_file)
+
+        raw_features = pd.read_csv(raw_feat_path,index_col=0)
+        raw_features.drop(columns=['Image Names'],inplace=True)
+        raw_features = raw_features.to_numpy()
+        raw_features = raw_features[:,:n_samples]
+
+        mapper = PCA(n_components=n)
+        print('Projecting features')
+        projected_features = mapper.fit_transform(raw_features)
+        print('Retrieving features')
+        inv_features = mapper.inverse_transform(projected_features)
+        print('Calculating RMSE')
+        return np.sqrt(np.mean((inv_features-raw_features)**2))
+
+    def umap_reconstruction_error(self,n=2,n_samples=100,raw_feat_file='validation_raw_features.csv'):
+        '''
+        Function that takes projected features, calculates its mapping into
+        the latent space and then gets the inverse transformation of it. 
+        Finally calculates the reconstruction error.
+        args:
+        return:
+        '''
+        raw_feat_path = os.path.join(self.cnn_ds_path,'unclassified_raw_data',raw_feat_file)
+
+        raw_features = pd.read_csv(raw_feat_path,index_col=0)
+        raw_features.drop(columns=['Image Names'],inplace=True)
+        raw_features = raw_features.to_numpy()
+        raw_features = raw_features[:,:n_samples]
+
+        mapper = UMAP(n_components=n)
+        print('Projecting features')
+        projected_features = mapper.fit_transform(raw_features)
+        print('Retrieving features')
+        inv_features = mapper.inverse_transform(projected_features)
+        print('Calculating RMSE')
+        return np.sqrt(np.mean((inv_features-raw_features)**2))
+        
