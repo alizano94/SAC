@@ -118,7 +118,7 @@ class IMG_Clustering(Autoencoder):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
 
-    def raw_featInception(self,path=None,out_name='raw_features.csv'):
+    def raw_featInception(self,path=None,out_name='raw_features.csv',data_set='train'):
         '''
         Method that takes a dump of images and extracts their features
         using the InceptionV3 model.
@@ -127,7 +127,7 @@ class IMG_Clustering(Autoencoder):
             -data: DataFrame containing the raw features.
         '''
         if not path:
-            path = os.path.join(self.cnn_ds_path,'unclassified_raw_data','train')
+            path = os.path.join(self.cnn_ds_path,'unclassified_raw_data',data_set)
         model = InceptionV3(weights='imagenet', include_top=False)
         raw_features = []
         img_name = []
