@@ -299,7 +299,7 @@ class CNN_Asistance(IMG_Clustering):
             for j in range(len(data)):
                 if data['labels'][j]==i:
                     shutil.copy(os.path.join(self.cnn_ds_path,'unclassified_raw_data',
-                                            'train',
+                                            'full',
                                             data['Image Names'][j])
                                 ,name)
 
@@ -314,7 +314,7 @@ class CNN_Asistance(IMG_Clustering):
         '''
         import math
         
-        #backup the clusters directory to a tempoaray one
+        #backup the clusters directory to a temporary one
         clusters_path = os.path.join(self.cnn_ds_path,'clusters')
         work_path = os.path.join(self.cnn_ds_path,'temp')
         os.system("rm -rf "+os.path.join(self.cnn_preprocess_data_path,"*"))        

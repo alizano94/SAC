@@ -17,7 +17,7 @@ plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
 data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data'
-cnn_data = pd.read_csv(os.path.join(data_path,'train_cnn_labels.csv'),
+cnn_data = pd.read_csv(os.path.join(data_path,'full_cnn_labels.csv'),
                         index_col=0)
 results_path = '/home/lizano/Documents/SAC/results/clusters'
 os.system('rm -rf '+os.path.join(results_path,'*'))
@@ -26,7 +26,7 @@ def get_purities():
     '''
     Function that evaluates metric for clusters
     '''
-    cluster_data = pd.read_csv(os.path.join(data_path,'hdbscan_clusters.csv'))
+    cluster_data = pd.read_csv(os.path.join(data_path,'full_hdbscan_UMAP500.csv'))
     purities = np.zeros((np.max(cluster_data['labels'].unique())+1,3))
     for i in range(len(cluster_data)):
         row = cluster_data.loc[i,'labels']

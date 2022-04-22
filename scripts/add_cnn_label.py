@@ -5,10 +5,11 @@ from src.control import RL
 
 control = RL(w=100,m=1,a=4)
 control.createCNN()
+control.k = 3
 control.loadCNN(None)
 
 
-data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data/train'
+data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data/full'
 
 data = pd.DataFrame(columns=['Image Names','CNN Labels'])
 
@@ -25,4 +26,4 @@ data['Image Names'] = names
 data['CNN Labels'] = states
 
 data_path = '/home/lizano/Documents/SAC/data/raw/cnn/unclassified_raw_data'
-data.to_csv(os.path.join(data_path,'train_cnn_labels.csv'))
+data.to_csv(os.path.join(data_path,'full_cnn_labels.csv'))
