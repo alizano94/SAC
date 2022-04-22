@@ -183,6 +183,35 @@ class IMG_Clustering(Autoencoder):
         print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
+    def pca(self,n,load_file='raw_features.csv',out_file='pca_features.csv'):
+        '''
+        Performs tSNE reduction on the raw features for the images.
+        args:
+            -n: number of componets to reduce to
+        return: None
+        '''
+        load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
+        if not os.path.exists(load_file):
+            print('File not found extracting features using Inception Model.')
+            self.raw_featInception()
+            load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data','raw_features.csv')
+
+        data = pd.read_csv(load_file,index_col=0)
+        raw_features = data.drop(columns=['Image Names'])
+        image_names = data.pop('Image Names')
+
+        raw_features.to_numpy()
+        columns = []
+        for i in range(n):
+            header = 'tSNE '+str(i)
+            columns.append(header)
+        pca = PCA(n_components=n)
+        features = pca.fit_transform(raw_features)
+        features = pd.DataFrame(features,columns=columns)
+        data = pd.concat([image_names,features],axis=1,join='inner')
+        print(data.head())
+        data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
+
     def umap(self,n,load_file='raw_features.csv',out_file='umap_features.csv'):
         '''
         Performs tSNE reduction on the raw features for the images.
@@ -337,11 +366,8 @@ class Clustering_Test(IMG_Clustering):
         raw_features = raw_features[:,:n_samples]
 
         mapper = PCA(n_components=n)
-        print('Projecting features')
         projected_features = mapper.fit_transform(raw_features)
-        print('Retrieving features')
         inv_features = mapper.inverse_transform(projected_features)
-        print('Calculating RMSE')
         return np.sqrt(np.mean((inv_features-raw_features)**2))
 
     def umap_reconstruction_error(self,n=2,n_samples=100,raw_feat_file='validation_raw_features.csv'):
@@ -360,10 +386,7 @@ class Clustering_Test(IMG_Clustering):
         raw_features = raw_features[:,:n_samples]
 
         mapper = UMAP(n_components=n)
-        print('Projecting features')
         projected_features = mapper.fit_transform(raw_features)
-        print('Retrieving features')
         inv_features = mapper.inverse_transform(projected_features)
-        print('Calculating RMSE')
         return np.sqrt(np.mean((inv_features-raw_features)**2))
         
