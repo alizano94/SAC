@@ -212,7 +212,8 @@ class IMG_Clustering(Autoencoder):
         print(data.head())
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
 
-    def umap(self,n,load_file='raw_features.csv',out_file='umap_features.csv'):
+    def umap(self,load_file='raw_features.csv',out_file='umap_features.csv',
+            n_components=2,n_neighbors=30,min_dist=0.0):
         '''
         Performs tSNE reduction on the raw features for the images.
         args:
@@ -232,10 +233,10 @@ class IMG_Clustering(Autoencoder):
 
         raw_features.to_numpy()
         columns = []
-        for i in range(n):
+        for i in range(n_components):
             header = 'UMAP '+str(i)
             columns.append(header)
-        mapper = UMAP(n_components=n)
+        mapper = UMAP(n_components=n_components,n_neighbors=n_neighbors,min_dist=min_dist)
         features = mapper.fit_transform(raw_features)
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
