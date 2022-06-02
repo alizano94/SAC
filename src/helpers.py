@@ -25,17 +25,18 @@ class Helpers():
         self.IMG_W=212
         self.chan=1
 
-        self.cnn_results_path = './results/cnn'
-        self.cnn_ds_path = './data/raw/cnn'
-        self.cnn_weights_path = './models/cnn'
-        self.cnn_preprocess_data_path = './data/preprocessed/cnn'
+        self.base_path = os.getcwd()
+        self.cnn_results_path = os.path.join(self.base_path,'results/cnn')
+        self.cnn_ds_path = os.path.join(self.base_path,'data/raw/cnn')
+        self.cnn_weights_path = os.path.join(self.base_path,'models/cnn')
+        self.cnn_preprocess_data_path = os.path.join(self.base_path,'data/preprocessed/cnn')
 
-        self.snn_results_path = './results/snn'
-        self.snn_ds_path = './data/raw/snn'
-        self.snn_weights_path = './models/snn'
-        self.snn_preprocess_data_path = './data/preprocessed/snn'
+        self.snn_results_path = os.path.join(self.base_path,'results/snn')
+        self.snn_ds_path = os.path.join(self.base_path,'data/raw/snn')
+        self.snn_weights_path = os.path.join(self.base_path,'models/snn')
+        self.snn_preprocess_data_path = os.path.join(self.base_path,'data/preprocessed/snn')
 
-        self.contorl_policies = './models/control'
+        self.contorl_policies = os.path.join(self.base_path,'models/control')
 
         self.k = len(os.listdir(os.path.join(self.cnn_preprocess_data_path,'train')))
 

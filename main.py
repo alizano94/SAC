@@ -1,11 +1,22 @@
 import os
 
-from numpy import full
 from src.control import RL
 
-full_features_csv = "full_raw_features.csv"
-projected_features_csv = "full_umap_2D_features.csv"
-clusters_csv = 'full_hdbscan_UMAP2.csv'
 
 control = RL(w=100,m=1,a=4)
-control.createCNN_DS(load_file='full_hdbscan_UMAP2.csv')
+#control.raw_featInception()
+#control.umap(
+#    n_components=3,
+#    n_neighbors=500,
+#    min_dist=0.0121
+#)
+control.cluster_hdbscan(
+    mcs=200,
+    ms=50,
+    eps=0.25
+)
+control.createCNN_DS()
+control.createCNN_spits(
+    testing_split=0.1,
+    validation_split=0.1
+)

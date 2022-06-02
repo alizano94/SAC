@@ -68,49 +68,29 @@ class CNN(CNN_Asistance):
         '''
         train_dir = os.path.join(self.cnn_preprocess_data_path,'train')
         test_dir = os.path.join(self.cnn_preprocess_data_path,'test')
-        train_crystal_dir = os.path.join(train_dir,'0')
-        train_fluid_dir = os.path.join(train_dir,'1')
-        train_defective_dir = os.path.join(train_dir,'2')
-
-        test_crystal_dir = os.path.join(test_dir,'0')
-        test_fluid_dir = os.path.join(test_dir,'1')
-        test_defective_dir = os.path.join(test_dir,'2')
 
         #Process the Data
         image_gen = ImageDataGenerator(rescale=1./255)
         train_data_gen = image_gen.flow_from_directory(
-                                    #batch_size=batch,
+                                    batch_size=batch,
                                     directory=train_dir,
                                     color_mode='grayscale',
                                     shuffle=True,
                                     target_size=(self.IMG_H, self.IMG_W),
                                     class_mode='categorical')
-        #print(train_data_gen.shape)
 
         test_data_gen = image_gen.flow_from_directory(
-                                    #batch_size=batch,
+                                    batch_size=batch,
                                     directory=test_dir,
                                     color_mode='grayscale',
                                     target_size=(self.IMG_H, self.IMG_W),
                                     class_mode='categorical')
-        
-        num_crystal_train = len(os.listdir(train_crystal_dir))
-        num_fluid_train = len(os.listdir(train_fluid_dir))
-        num_defective_train = len(os.listdir(train_defective_dir))
-
-        num_crystal_test = len(os.listdir(test_crystal_dir))
-        num_fluid_test = len(os.listdir(test_fluid_dir))
-        num_defective_test = len(os.listdir(test_defective_dir))
-
-        total_train = num_crystal_train + num_fluid_train + num_defective_train
-        total_test = num_crystal_test + num_fluid_test + num_defective_test
-
         history = self.cnn_model.fit(
                             train_data_gen,
-                            steps_per_epoch=total_train // batch,
+                            steps_per_epoch=train_data_gen.n // train_data_gen.batch_size,
                             epochs=epochs,
                             validation_data=test_data_gen,
-                            validation_steps=total_test // batch,
+                            validation_steps=test_data_gen.n // test_data_gen.batch_size,
                             callbacks = [tf.keras.callbacks.EarlyStopping(
                             monitor='val_loss',
                             min_delta=0.01,
@@ -185,6 +165,7 @@ class CNN_Testing(CNN):
             for image in os.listdir(os.path.join(path,cluster)):
                 pred_label, _ = self.runCNN(os.path.join(path,cluster,image))
                 Conf_Mat[int(cluster),int(pred_label)] += 1
+        print(Conf_Mat)
         self.plot_heatmap(Conf_Mat)
         
 

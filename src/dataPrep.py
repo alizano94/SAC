@@ -117,6 +117,7 @@ class Autoencoder_Test(Autoencoder):
 class IMG_Clustering(Autoencoder):
     def __init__(self, *args, **kwargs):
         super(IMG_Clustering, self).__init__(*args, **kwargs)
+        print('Initialized Clustering Module.')
 
     def raw_featInception(self,path=None,out_name='raw_features.csv',data_set='train'):
         '''
@@ -220,7 +221,8 @@ class IMG_Clustering(Autoencoder):
             -n: number of componets to reduce to
         return: None
         '''
-        
+        print('Perfomring UMAP.')
+        print('Loading raw file.')
         load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
         if not os.path.exists(load_file):
             print('File not found extracting features using Inception Model.')
@@ -232,15 +234,20 @@ class IMG_Clustering(Autoencoder):
         image_names = data.pop('Image Names')
 
         raw_features.to_numpy()
+        print('loaded!')
         columns = []
         for i in range(n_components):
             header = 'UMAP '+str(i)
             columns.append(header)
+        print('Starting UMAP.')
         mapper = UMAP(n_components=n_components,n_neighbors=n_neighbors,min_dist=min_dist)
         features = mapper.fit_transform(raw_features)
         features = pd.DataFrame(features,columns=columns)
         data = pd.concat([image_names,features],axis=1,join='inner')
+        print('Done!')
+        print('Saving UMAP file!')
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
+        print('UMAP Done!')
 
     def cluster_hdbscan(self,plot=False,mcs=40,ms=5,eps=0.1,
                         metric='euclidean',
@@ -251,6 +258,8 @@ class IMG_Clustering(Autoencoder):
         args:
         returns:
         '''
+        print('Starting clustering.')
+        print('Loading features')
         load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
         if not os.path.exists(load_file):
             print('File not found creating file using UMAP')
@@ -260,7 +269,8 @@ class IMG_Clustering(Autoencoder):
         
         features = data.drop(columns=['Image Names'])
         image_names = data.pop('Image Names')
-
+        print('Done!')
+        print('Starting clustering.')
         cluster = hdbscan.HDBSCAN(min_cluster_size=mcs,
                                 min_samples=ms,
                                 cluster_selection_epsilon=eps,
@@ -270,7 +280,9 @@ class IMG_Clustering(Autoencoder):
         data['Image Names'] = image_names.to_numpy()
 
         #print(data.head())
+        print('Saving cluster file.')
         data.to_csv(os.path.join(self.cnn_ds_path,'unclassified_raw_data',out_file))
+        print('Clustering done!')
 
 
 class CNN_Asistance(IMG_Clustering):
@@ -283,6 +295,7 @@ class CNN_Asistance(IMG_Clustering):
         args: None
         returns: None
         '''
+        print('Creating CNN DS.')
         load_file = os.path.join(self.cnn_ds_path,'unclassified_raw_data',load_file)
         if not os.path.exists(load_file):
             print('File not found creating file using HDBSCAN')
@@ -303,6 +316,7 @@ class CNN_Asistance(IMG_Clustering):
                                             'full',
                                             data['Image Names'][j])
                                 ,name)
+        print('Done!')
 
     def createCNN_spits(self,validation_split=0.2,testing_split=0.2):
         '''
@@ -313,6 +327,7 @@ class CNN_Asistance(IMG_Clustering):
             -testing_split: fraction of total data set to take as testing.
         return:
         '''
+        print('Creating CNN splits.')
         import math
         
         #backup the clusters directory to a temporary one
@@ -343,6 +358,7 @@ class CNN_Asistance(IMG_Clustering):
                 os.system("shuf -n"+validation_size+" -e "+path+"/*.png | xargs -i mv {} "+os.path.join(destinations[2],cluster))
                 size += number_files
         os.system("rm -rf "+work_path)
+        print('Done!')
                 
 
 class Clustering_Test(IMG_Clustering):
