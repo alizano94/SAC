@@ -1,4 +1,5 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import numpy as np
 from IPython.display import clear_output
 
@@ -11,7 +12,7 @@ class RL(Control_Asistance):
         self.s_size = self.k**self.m
         self.out_file = str(self.s_size)+'X'+str(self.a)+'Q_table'+str(self.m)+'M.npy'
         self.out_file = os.path.join(self.contorl_policies,self.out_file)
-        self.q_table = np.load(self.out_file)
+        #self.q_table = np.load(self.out_file)
 
 
     def getQTable(self,alpha=0.1,gamma=0.95,epsilon=0.1,eps=10000):

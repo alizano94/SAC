@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from sklearn.manifold import TSNE
 
 
 import tensorflow as tf
@@ -9,16 +10,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, Dropout, MaxPooling2D
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from src.helpers import Helpers
+from src.dataPrep import CNN_Asistance
 
-class CNN(Helpers):
+class CNN(CNN_Asistance):
     def __init__(self, *args, **kwargs):
         super(CNN, self).__init__(*args, **kwargs)
-        self.k = len(os.listdir(os.path.join(self.cnn_ds_path,'train')))
-        self.IMG_H=212
-        self.IMG_W=212
-        self.chan=1
-    
+        self.save_path = os.path.join(self.cnn_weights_path,'CNN-'+str(self.k)+'states.h5')
+        
     def createCNN(self,summary=False):
         '''
         function that creates and compile the CNN
@@ -68,56 +66,37 @@ class CNN(Helpers):
         A function that trains a CNN given the model
         and the PATH of the data set.
         '''
-        train_dir = os.path.join(self.cnn_ds_path,'train')
-        test_dir = os.path.join(self.cnn_ds_path,'test')
-        train_crystal_dir = os.path.join(train_dir,'0')
-        train_fluid_dir = os.path.join(train_dir,'1')
-        train_defective_dir = os.path.join(train_dir,'2')
-
-        test_crystal_dir = os.path.join(test_dir,'0')
-        test_fluid_dir = os.path.join(test_dir,'1')
-        test_defective_dir = os.path.join(test_dir,'2')
+        train_dir = os.path.join(self.cnn_preprocess_data_path,'train')
+        test_dir = os.path.join(self.cnn_preprocess_data_path,'test')
 
         #Process the Data
         image_gen = ImageDataGenerator(rescale=1./255)
         train_data_gen = image_gen.flow_from_directory(
-                                    #batch_size=batch,
+                                    batch_size=batch,
                                     directory=train_dir,
                                     color_mode='grayscale',
                                     shuffle=True,
                                     target_size=(self.IMG_H, self.IMG_W),
                                     class_mode='categorical')
-        #print(train_data_gen.shape)
 
         test_data_gen = image_gen.flow_from_directory(
-                                    #batch_size=batch,
+                                    batch_size=batch,
                                     directory=test_dir,
                                     color_mode='grayscale',
                                     target_size=(self.IMG_H, self.IMG_W),
                                     class_mode='categorical')
-        
-        num_crystal_train = len(os.listdir(train_crystal_dir))
-        num_fluid_train = len(os.listdir(train_fluid_dir))
-        num_defective_train = len(os.listdir(train_defective_dir))
-
-        num_crystal_test = len(os.listdir(test_crystal_dir))
-        num_fluid_test = len(os.listdir(test_fluid_dir))
-        num_defective_test = len(os.listdir(test_defective_dir))
-
-        total_train = num_crystal_train + num_fluid_train + num_defective_train
-        total_test = num_crystal_test + num_fluid_test + num_defective_test
-
         history = self.cnn_model.fit(
                             train_data_gen,
-                            steps_per_epoch=total_train // batch,
+                            steps_per_epoch=train_data_gen.n // train_data_gen.batch_size,
                             epochs=epochs,
                             validation_data=test_data_gen,
-                            validation_steps=total_test // batch,
+                            validation_steps=test_data_gen.n // test_data_gen.batch_size,
                             callbacks = [tf.keras.callbacks.EarlyStopping(
                             monitor='val_loss',
                             min_delta=0.01,
                             patience=7)])
-        self.cnn_model.save_weights(self.cnn_weights_path)
+        
+        self.cnn_model.save_weights(self.save_path)
         
         if plot:
             #Plot Accuracy, change this to matplotlib
@@ -142,7 +121,7 @@ class CNN(Helpers):
 			-path: path from which to load weights
 		'''
         if path == None:
-            path = self.cnn_weights_path
+            path = self.save_path
         #Load model wieghts
         self.cnn_model.load_weights(path)
         print("Loaded model from disk")
@@ -165,7 +144,7 @@ class CNN(Helpers):
 class CNN_Testing(CNN):
     def __init__(self, *args, **kwargs):
         super(CNN_Testing, self).__init__(*args, **kwargs)
-
+    
     def testCNN(self,path):
         '''
         Function that test CNN performance by callculating the 
@@ -178,45 +157,24 @@ class CNN_Testing(CNN):
             -missclassified data: csv containing the missclassified images.  
         '''
         if path == None:
-            path = self.cnn_ds_path
+            path = os.path.join(self.cnn_preprocess_data_path,'validation')
 
-        results_path = './results/cnn'
         Conf_Mat = np.zeros([self.k,self.k])
-        data = pd.DataFrame()
-        
-        #CHECK REFACTOR FOR THIS LOOPS
-        for dir_name in os.listdir(path):
-            new_path = os.path.join(path,dir_name)
-            if os.path.isdir(new_path):
-                for tag in os.listdir(new_path):
-                    real_state = int(tag)
-                    new_path = os.path.join(os.path.join(path,dir_name),tag)
-                    print(new_path)
-                    for filename in os.listdir(new_path):
-                        if filename.endswith(".png"):
-                            img = os.path.join(new_path,filename)
-                            s_cnn, _ = self.runCNN(img)
-                            Conf_Mat[int(real_state),int(s_cnn)] += 1
-                            if int(real_state) != int(s_cnn):
-                                entry = {}
-                                entry['Path'] = os.path.join(new_path,filename)
-                                entry['CNN'] = s_cnn
-                                entry['Real'] = real_state
-                                data = data.append(entry,ignore_index=True)
+        error_log = pd.DataFrame(columns=['Image Name','Path','True Label','Predicted Label'])
+        for cluster in os.listdir(path):
+            for image in os.listdir(os.path.join(path,cluster)):
+                pred_label, _ = self.runCNN(os.path.join(path,cluster,image))
+                Conf_Mat[int(cluster),int(pred_label)] += 1
         print(Conf_Mat)
-        np.save(os.path.join(results_path,'ConfMat.npy'),Conf_Mat)
-        print('Number of point in data set: ',Conf_Mat.sum())
-        data.to_csv(os.path.join(results_path,'CNNerror_log.csv'),index=False)
+        self.plot_heatmap(Conf_Mat)
+        
 
-        score = Conf_Mat.trace()/Conf_Mat.sum()
-        print(score)
+
 
 class SNN_Asistance(CNN):
     def __init__(self, *args, **kwargs):
         super(SNN_Asistance, self).__init__(*args, **kwargs)
-        self.cnn = CNN()
-        self.cnn.createCNN(summary=False)
-        self.cnn.loadCNN(None)
+
 
     def preProcessSNNDS(self):
         '''
@@ -251,7 +209,7 @@ class SNN_Asistance(CNN):
                                     states = pd.DataFrame(columns = ['S_cnn', 'S_param'])
                                     for i in range(0,len(data.index)):
                                         file_name = t_path+'/plots/'+v_dir+'-'+t_dir+'-'+str(i)+'step'+step_dir+'.png'
-                                        s_cnn, _ = self.cnn.runCNN(file_name)
+                                        s_cnn, _ = self.runCNN(file_name)
                                         c6 = data.iloc[i]['C6_avg']
                                         psi6 = data.iloc[i]['psi6']
                                         if c6 <= 4.0:

@@ -33,12 +33,12 @@ class SNN(SNN_Asistance):
         self.w = w
         self.a = a
 
-        weight_file = 'SNN-W'+str(self.w)+'-M'+str(self.m)+'.h5'
-        ds_file = 'Balanced-W'+str(self.w)+'-M'+str(self.m)+'.csv'
+        weight_file = 'SNN-W'+str(self.w)+'-M'+str(self.m)+'-K'+str(self.k)+'.h5'
+        ds_file = 'Balanced-W'+str(self.w)+'-M'+str(self.m)+'-K'+str(self.k)+'.csv'
         self.snn_preprocess_data_path = os.path.join(self.snn_preprocess_data_path,ds_file)
         self.snn_weights_path = os.path.join(self.snn_weights_path, weight_file)
 
-    def createSNNDS(self):
+    def createSNNDS(self,balanced=True):
         '''
         Function that creates the csv files that 
         serve as DS for the CNN
@@ -76,7 +76,8 @@ class SNN(SNN_Asistance):
                                         pass
 
         data.reset_index(inplace=True)						
-        data = self.balanceData(data,method='expand')
+        if balanced:
+            data = self.balanceData(data,method='expand')
         #data.drop(columns=['level_0'],inplace=True)
         print('Saving DS of size: '+str(len(data)))
         data.to_csv(self.snn_preprocess_data_path,index=False)
@@ -230,9 +231,6 @@ class SNN(SNN_Asistance):
 class SNN_Testing(SNN):
     def __init__(self,*args,**kwargs):
         super(SNN_Testing,self).__init__(*args,**kwargs)
-        self.snn = SNN(a=self.a,w=self.w,m=self.m)
-        self.snn.createSNN()
-        self.snn.loadSNN(None)
 
     def getTranitionTensorDS(self):
         '''
@@ -293,14 +291,14 @@ class SNN_Testing(SNN):
                 for i in range(self.m):
                     name = 'S'+str(i-self.m)
                     states.insert(-1,int(rows[name]))
-                out = self.snn.runSNN(V,states)
+                out = self.runSNN(V,states)
                 trans_matrix[int(rows['V'])-1,int(rows['S-1']),int(out)] += 1
         else:
             for V in range(4):
                 for initial_state in range(3):
                     states = [initial_state]
                     for i in range(1000):		
-                        out = self.snn.runSNN(V+1,states)
+                        out = self.runSNN(V+1,states)
                         trans_matrix[V,initial_state,int(out)] += 1
 
         np.save(tensor_save_path,trans_matrix)
